@@ -1,0 +1,3648 @@
+-- https://lua.expert/
+local v0 = "\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144\226\149\144"
+local Players = game:GetService("Players")
+local ReplicatedStorage = game:GetService("ReplicatedStorage")
+local UserInputService = game:GetService("UserInputService")
+local TweenService = game:GetService("TweenService")
+local LocalPlayer = Players.LocalPlayer
+local PlayerGui = LocalPlayer:WaitForChild("PlayerGui")
+local AdminRemotes = ReplicatedStorage:FindFirstChild("AdminRemotes")
+
+if not AdminRemotes then
+	local v1 = tick()
+
+	while not AdminRemotes and tick() - v1 < 5 do
+		local AdminRemotes2 = ReplicatedStorage:FindFirstChild("AdminRemotes")
+
+		task.wait(0.1)
+		AdminRemotes = AdminRemotes2
+	end
+end
+
+if not AdminRemotes then
+	warn("[AdminPanelClient] AdminRemotes not found")
+
+	return
+end
+
+local AdminCommand = AdminRemotes:WaitForChild("AdminCommand", 5)
+local AdminRefresh = AdminRemotes:WaitForChild("AdminRefresh", 5)
+local AdminLog = AdminRemotes:WaitForChild("AdminLog", 5)
+local EventCommand = AdminRemotes:FindFirstChild("EventCommand")
+
+if not AdminCommand then
+	warn("[AdminPanelClient] AdminCommand not found")
+
+	return
+end
+
+local v2 = nil
+local ok, _ = pcall(function() --[[ Line: 43 | Upvalues: v2 (ref), AdminCommand (copy) ]]
+	v2 = AdminCommand:InvokeServer("getAdminInfo", {})
+end)
+
+if true then end
+
+local v3 = v2.role or "Unknown"
+local permissions = v2.permissions
+local TouchEnabled = UserInputService.TouchEnabled
+local v4 = tick()
+local v5 = nil
+
+while not v5 and tick() - v4 < 10 do
+	v5 = PlayerGui:FindFirstChild("AdminPanel")
+	task.wait(0.1)
+end
+
+if not v5 then
+	warn("[AdminPanelClient] AdminPanel not found")
+
+	return
+end
+
+local MainFrame = v5:WaitForChild("MainFrame", 5)
+
+if not MainFrame then
+	warn("[AdminPanelClient] MainFrame not found")
+
+	return
+end
+
+local Header = MainFrame:WaitForChild("Header", 5)
+local TabBar = MainFrame:WaitForChild("TabBar", 5)
+local ContentFrame = MainFrame:WaitForChild("ContentFrame", 5)
+
+if not ContentFrame then
+	warn("[AdminPanelClient] ContentFrame not found")
+
+	return
+end
+
+local PlayersTab = ContentFrame:WaitForChild("PlayersTab", 5)
+local ShopsTab = ContentFrame:WaitForChild("ShopsTab", 5)
+local LogsTab = ContentFrame:WaitForChild("LogsTab", 5)
+local ServerTab = ContentFrame:FindFirstChild("ServerTab")
+local EventTab = ContentFrame:FindFirstChild("EventTab")
+local ClansTab = ContentFrame:FindFirstChild("ClansTab")
+
+if not ClansTab then
+	local ClansTab2 = Instance.new("Frame")
+
+	ClansTab2.Name = "ClansTab"
+	ClansTab2.Size = UDim2.fromScale(1, 1)
+	ClansTab2.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+	ClansTab2.BorderSizePixel = 0
+	ClansTab2.Visible = false
+	ClansTab2.Parent = ContentFrame
+	ClansTab = ClansTab2
+end
+
+local BannedTab = ContentFrame:FindFirstChild("BannedTab")
+
+if not BannedTab then
+	local BannedTab2 = Instance.new("Frame")
+
+	BannedTab2.Name = "BannedTab"
+	BannedTab2.Size = UDim2.fromScale(1, 1)
+	BannedTab2.BackgroundColor3 = Color3.fromRGB(18, 18, 24)
+	BannedTab2.BorderSizePixel = 0
+	BannedTab2.Visible = false
+	BannedTab2.Parent = ContentFrame
+	BannedTab = BannedTab2
+end
+
+local PlayerListScroll = PlayersTab:WaitForChild("PlayerListScroll", 5)
+
+PlayerListScroll:WaitForChild("PlayerEntryTemplate", 5)
+
+local PlayerCard = PlayersTab:WaitForChild("PlayerCard", 5)
+local CardInfoLabel = PlayerCard:WaitForChild("CardInfoLabel", 5)
+local ActionsFrame = PlayerCard:WaitForChild("ActionsFrame", 5)
+local InventoryToggle = PlayerCard:WaitForChild("InventoryToggle", 5)
+local InventoryContainer = PlayerCard:WaitForChild("InventoryContainer", 5)
+local ShopListScroll = ShopsTab:WaitForChild("ShopListScroll", 5)
+local ShopEntryTemplate = ShopListScroll:WaitForChild("ShopEntryTemplate", 5)
+local GlobalControls = ShopsTab:WaitForChild("GlobalControls", 5)
+local LogScroll = LogsTab:WaitForChild("LogScroll", 5)
+local LogEntryTemplate = LogScroll:WaitForChild("LogEntryTemplate", 5)
+local LogsTopFrame = LogsTab:WaitForChild("LogsTopFrame", 5)
+local AdminToggleGui = PlayerGui:WaitForChild("AdminToggleGui", 5)
+local v6 = if AdminToggleGui then AdminToggleGui:FindFirstChild("AdminToggleBtn") else AdminToggleGui
+
+AdminRemotes:FindFirstChild("AdminAnnounce")
+AdminRemotes:FindFirstChild("AdminChat")
+AdminRemotes:FindFirstChild("AdminMusicState")
+
+local t = {
+	bg = Color3.fromRGB(18, 18, 24),
+	panel = Color3.fromRGB(28, 28, 38),
+	card = Color3.fromRGB(38, 38, 52),
+	cardHover = Color3.fromRGB(48, 48, 65),
+	accent = Color3.fromRGB(88, 101, 242),
+	green = Color3.fromRGB(67, 181, 129),
+	red = Color3.fromRGB(237, 66, 69),
+	orange = Color3.fromRGB(250, 166, 26),
+	yellow = Color3.fromRGB(254, 231, 92),
+	text = Color3.fromRGB(220, 221, 222),
+	textDim = Color3.fromRGB(148, 155, 164),
+	textBright = Color3.fromRGB(255, 255, 255),
+	border = Color3.fromRGB(58, 58, 78),
+	purple = Color3.fromRGB(140, 70, 220),
+	gold = Color3.fromRGB(255, 200, 0),
+	inactive = Color3.fromRGB(60, 60, 68),
+	clanBlue = Color3.fromRGB(60, 140, 200),
+	clanPurple = Color3.fromRGB(130, 70, 200),
+	fake = Color3.fromRGB(100, 100, 110),
+	banRed = Color3.fromRGB(50, 15, 15)
+}
+local v7 = nil
+local v8 = nil
+local v9 = nil
+local v10 = nil
+local v11 = nil
+local v12 = nil
+local v13 = "Players"
+local v14 = nil
+local v15 = nil
+local v16 = false
+local v17 = nil
+local t2 = {}
+local v18 = false
+local v19 = nil
+local v20 = false
+local v21 = 1
+local v22 = 1
+local v23 = ""
+local v24 = false
+local v25 = false
+local v26 = 1
+local v27 = 1
+local v28 = ""
+local v29 = false
+local t3 = {}
+
+local function cmd(p1, p2) --[[ cmd | Line: 205 | Upvalues: AdminCommand (copy) ]]
+	local ok, result = pcall(function() --[[ Line: 206 | Upvalues: AdminCommand (ref), p1 (copy), p2 (copy) ]]
+		return AdminCommand:InvokeServer(p1, p2 or {})
+	end)
+
+	if not ok then
+		warn("[AdminPanel] cmd failed:", p1, (tostring(result)))
+
+		return {
+			error = tostring(result)
+		}
+	end
+
+	return if result then result else {}
+end
+
+local function formatMoney(p1) --[[ formatMoney | Line: 216 ]]
+	local v1 = tonumber(p1) or 0
+
+	if v1 >= 1000000 then
+		return "$" .. string.format("%.1fM", v1 / 1000000)
+	end
+
+	if v1 >= 1000 then
+		return "$" .. string.format("%.1fK", v1 / 1000)
+	end
+
+	return "$" .. tostring(v1)
+end
+
+local function formatTime(p1) --[[ formatTime | Line: 224 ]]
+	local v1 = tonumber(p1) or 0
+
+	return string.format("%d:%02d", math.floor(v1 / 60), (math.floor(v1 % 60)))
+end
+
+local function formatHMS(p1) --[[ formatHMS | Line: 229 ]]
+	local v2 = math.max(0, (math.floor(p1)))
+
+	return string.format("%d:%02d:%02d", math.floor(v2 / 3600), math.floor(v2 % 3600 / 60), v2 % 60)
+end
+
+local function formatTimeLeft(p1) --[[ formatTimeLeft | Line: 235 ]]
+	if not p1 or p1 <= 0 then
+		return "\208\184\209\129\209\130\209\145\208\186"
+	end
+
+	local v1 = math.floor(p1)
+	local v2 = math.floor(v1 / 86400)
+	local v3 = math.floor(v1 % 86400 / 3600)
+	local v4 = math.floor(v1 % 3600 / 60)
+
+	if v2 > 0 then
+		return v2 .. "\208\180 " .. v3 .. "\209\135"
+	end
+
+	if v3 > 0 then
+		return v3 .. "\209\135 " .. v4 .. "\208\188"
+	end
+
+	return v4 .. " \208\188\208\184\208\189"
+end
+
+local function addCorner(p1, p2) --[[ addCorner | Line: 246 ]]
+	local UICorner = Instance.new("UICorner")
+
+	UICorner.CornerRadius = UDim.new(0, p2 or 6)
+	UICorner.Parent = p1
+
+	return UICorner
+end
+
+local function addStroke(p1, p2, p3) --[[ addStroke | Line: 253 ]]
+	local UIStroke = Instance.new("UIStroke")
+
+	UIStroke.Color = if p2 then p2 else Color3.fromRGB(58, 58, 78)
+	UIStroke.Thickness = p3 or 1
+	UIStroke.Parent = p1
+
+	return UIStroke
+end
+
+local function addPadding(p1, p2, p3) --[[ addPadding | Line: 261 ]]
+	local UIPadding = Instance.new("UIPadding")
+
+	UIPadding.PaddingTop = UDim.new(0, p2 or 6)
+	UIPadding.PaddingBottom = UDim.new(0, p2 or 6)
+	UIPadding.PaddingLeft = UDim.new(0, p3 or 8)
+	UIPadding.PaddingRight = UDim.new(0, p3 or 8)
+	UIPadding.Parent = p1
+end
+
+local function addListLayout(p1, p2, p3, p4, p5) --[[ addListLayout | Line: 270 ]]
+	local UIListLayout = Instance.new("UIListLayout")
+
+	UIListLayout.FillDirection = if p2 then p2 else Enum.FillDirection.Vertical
+	UIListLayout.Padding = UDim.new(0, p3 or 4)
+	UIListLayout.HorizontalAlignment = if p4 then p4 else Enum.HorizontalAlignment.Left
+	UIListLayout.VerticalAlignment = if p5 then p5 else Enum.VerticalAlignment.Top
+	UIListLayout.SortOrder = Enum.SortOrder.LayoutOrder
+	UIListLayout.Parent = p1
+
+	return UIListLayout
+end
+
+local function makeBtn(p1, p2, p3, p4, p5) --[[ makeBtn | Line: 281 | Upvalues: t (copy), TweenService (copy) ]]
+	local TextButton = Instance.new("TextButton")
+
+	TextButton.Text = p2
+	TextButton.Font = Enum.Font.GothamBold
+	TextButton.TextSize = 11
+	TextButton.TextColor3 = t.textBright
+	TextButton.BackgroundColor3 = p3
+	TextButton.Size = UDim2.new(0, p4 or 80, 0, p5 or 26)
+	TextButton.AutoButtonColor = false
+	TextButton.BorderSizePixel = 0
+	TextButton.Parent = p1
+
+	local UICorner = Instance.new("UICorner")
+
+	UICorner.CornerRadius = UDim.new(0, 4)
+	UICorner.Parent = TextButton
+	TextButton.MouseEnter:Connect(function() --[[ Line: 293 | Upvalues: TweenService (ref), TextButton (copy), p3 (copy) ]]
+		local v3 = TweenInfo.new(0.1)
+		local t = {}
+
+		t.BackgroundColor3 = Color3.new(math.min(p3.R + 0.1, 1), math.min(p3.G + 0.1, 1), (math.min(p3.B + 0.1, 1)))
+		TweenService:Create(TextButton, v3, t):Play()
+	end)
+	TextButton.MouseLeave:Connect(function() --[[ Line: 299 | Upvalues: TweenService (ref), TextButton (copy), p3 (copy) ]]
+		TweenService:Create(TextButton, TweenInfo.new(0.1), {
+			BackgroundColor3 = p3
+		}):Play()
+	end)
+
+	return TextButton
+end
+
+local function makeLbl(p1, p2, p3, p4, p5) --[[ makeLbl | Line: 305 | Upvalues: t (copy) ]]
+	local TextLabel = Instance.new("TextLabel")
+
+	TextLabel.Text = p2 or ""
+	TextLabel.Font = p5 and Enum.Font.GothamBold or Enum.Font.GothamMedium
+	TextLabel.TextSize = p3 or 12
+	TextLabel.TextColor3 = if p4 then p4 else t.text
+	TextLabel.BackgroundTransparency = 1
+	TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+	TextLabel.Size = UDim2.new(1, 0, 0, p3 and p3 + 4 or 16)
+	TextLabel.Parent = p1
+
+	return TextLabel
+end
+
+local function makeScroll(p1) --[[ makeScroll | Line: 318 | Upvalues: addListLayout (copy), addPadding (copy) ]]
+	local ScrollingFrame = Instance.new("ScrollingFrame")
+
+	ScrollingFrame.Size = UDim2.fromScale(1, 1)
+	ScrollingFrame.BackgroundTransparency = 1
+	ScrollingFrame.CanvasSize = UDim2.new(0, 0, 0, 0)
+	ScrollingFrame.AutomaticCanvasSize = Enum.AutomaticSize.Y
+	ScrollingFrame.ScrollBarThickness = 3
+	ScrollingFrame.ScrollBarImageColor3 = Color3.fromRGB(80, 80, 100)
+	ScrollingFrame.BorderSizePixel = 0
+	ScrollingFrame.Parent = p1
+	addListLayout(ScrollingFrame, nil, 4)
+	addPadding(ScrollingFrame, 6, 6)
+
+	return ScrollingFrame
+end
+
+local InputPopup = v5:WaitForChild("InputPopup", 5)
+local ConfirmPopup = v5:WaitForChild("ConfirmPopup", 5)
+local GiveItemPopup = v5:WaitForChild("GiveItemPopup", 5)
+local PopupOverlay = v5:WaitForChild("PopupOverlay", 5)
+
+local function hideAllPopups() --[[ hideAllPopups | Line: 342 | Upvalues: InputPopup (copy), ConfirmPopup (copy), GiveItemPopup (copy), PopupOverlay (copy), v19 (ref) ]]
+	if InputPopup then
+		InputPopup.Visible = false
+	end
+
+	if ConfirmPopup then
+		ConfirmPopup.Visible = false
+	end
+
+	if GiveItemPopup then
+		GiveItemPopup.Visible = false
+	end
+
+	if PopupOverlay then
+		PopupOverlay.Visible = false
+	end
+
+	v19 = nil
+end
+
+local function showInputPopup(p1, p2, p3) --[[ showInputPopup | Line: 350 | Upvalues: InputPopup (copy), ConfirmPopup (copy), GiveItemPopup (copy), PopupOverlay (copy), v19 (ref) ]]
+	if not InputPopup then
+		return
+	end
+
+	if InputPopup then
+		InputPopup.Visible = false
+	end
+
+	if ConfirmPopup then
+		ConfirmPopup.Visible = false
+	end
+
+	if GiveItemPopup then
+		GiveItemPopup.Visible = false
+	end
+
+	if PopupOverlay then
+		PopupOverlay.Visible = false
+	end
+
+	v19 = nil
+
+	local PopupTitle = InputPopup:FindFirstChild("PopupTitle")
+	local PopupInput = InputPopup:FindFirstChild("PopupInput")
+
+	if PopupTitle then
+		PopupTitle.Text = p1
+	end
+
+	if PopupInput then
+		PopupInput.PlaceholderText = p2 or "Enter value..."
+		PopupInput.Text = ""
+	end
+
+	v19 = p3
+
+	if PopupOverlay then
+		PopupOverlay.Visible = true
+	end
+
+	InputPopup.Visible = true
+
+	if not PopupInput then
+		return
+	end
+
+	task.wait(0.05)
+	PopupInput:CaptureFocus()
+end
+
+local function showConfirmPopup(p1, p2) --[[ showConfirmPopup | Line: 363 | Upvalues: ConfirmPopup (copy), InputPopup (copy), GiveItemPopup (copy), PopupOverlay (copy), v19 (ref) ]]
+	if not ConfirmPopup then
+		return
+	end
+
+	if InputPopup then
+		InputPopup.Visible = false
+	end
+
+	if ConfirmPopup then
+		ConfirmPopup.Visible = false
+	end
+
+	if GiveItemPopup then
+		GiveItemPopup.Visible = false
+	end
+
+	if PopupOverlay then
+		PopupOverlay.Visible = false
+	end
+
+	v19 = nil
+
+	local ConfirmTitle = ConfirmPopup:FindFirstChild("ConfirmTitle")
+
+	if ConfirmTitle then
+		ConfirmTitle.Text = p1
+	end
+
+	v19 = p2
+
+	if PopupOverlay then
+		PopupOverlay.Visible = true
+	end
+
+	ConfirmPopup.Visible = true
+end
+
+if InputPopup then
+	local PopupConfirm = InputPopup:FindFirstChild("PopupConfirm")
+	local PopupCancel = InputPopup:FindFirstChild("PopupCancel")
+	local PopupInput = InputPopup:FindFirstChild("PopupInput")
+
+	if PopupConfirm then
+		PopupConfirm.MouseButton1Click:Connect(function() --[[ Line: 378 | Upvalues: PopupInput (copy), v19 (ref), InputPopup (copy), ConfirmPopup (copy), GiveItemPopup (copy), PopupOverlay (copy) ]]
+			local v1 = if PopupInput then PopupInput.Text or "" else ""
+			local v2 = v19
+
+			if InputPopup then
+				InputPopup.Visible = false
+			end
+
+			if ConfirmPopup then
+				ConfirmPopup.Visible = false
+			end
+
+			if GiveItemPopup then
+				GiveItemPopup.Visible = false
+			end
+
+			if PopupOverlay then
+				PopupOverlay.Visible = false
+			end
+
+			v19 = nil
+
+			if not v2 then
+				return
+			end
+
+			v2(v1)
+		end)
+	end
+
+	if PopupCancel then
+		PopupCancel.MouseButton1Click:Connect(function() --[[ Line: 384 | Upvalues: InputPopup (copy), ConfirmPopup (copy), GiveItemPopup (copy), PopupOverlay (copy), v19 (ref) ]]
+			if InputPopup then
+				InputPopup.Visible = false
+			end
+
+			if ConfirmPopup then
+				ConfirmPopup.Visible = false
+			end
+
+			if GiveItemPopup then
+				GiveItemPopup.Visible = false
+			end
+
+			if PopupOverlay then
+				PopupOverlay.Visible = false
+			end
+
+			v19 = nil
+		end)
+	end
+end
+
+if ConfirmPopup then
+	local ConfirmYes = ConfirmPopup:FindFirstChild("ConfirmYes")
+	local ConfirmNo = ConfirmPopup:FindFirstChild("ConfirmNo")
+
+	if ConfirmYes then
+		ConfirmYes.MouseButton1Click:Connect(function() --[[ Line: 391 | Upvalues: v19 (ref), InputPopup (copy), ConfirmPopup (copy), GiveItemPopup (copy), PopupOverlay (copy) ]]
+			local v1 = v19
+
+			if InputPopup then
+				InputPopup.Visible = false
+			end
+
+			if ConfirmPopup then
+				ConfirmPopup.Visible = false
+			end
+
+			if GiveItemPopup then
+				GiveItemPopup.Visible = false
+			end
+
+			if PopupOverlay then
+				PopupOverlay.Visible = false
+			end
+
+			v19 = nil
+
+			if not v1 then
+				return
+			end
+
+			v1()
+		end)
+	end
+
+	if ConfirmNo then
+		ConfirmNo.MouseButton1Click:Connect(function() --[[ Line: 396 | Upvalues: InputPopup (copy), ConfirmPopup (copy), GiveItemPopup (copy), PopupOverlay (copy), v19 (ref) ]]
+			if InputPopup then
+				InputPopup.Visible = false
+			end
+
+			if ConfirmPopup then
+				ConfirmPopup.Visible = false
+			end
+
+			if GiveItemPopup then
+				GiveItemPopup.Visible = false
+			end
+
+			if PopupOverlay then
+				PopupOverlay.Visible = false
+			end
+
+			v19 = nil
+		end)
+	end
+end
+
+if PopupOverlay then
+	PopupOverlay.MouseButton1Click:Connect(function() --[[ Line: 400 | Upvalues: InputPopup (copy), ConfirmPopup (copy), GiveItemPopup (copy), PopupOverlay (copy), v19 (ref) ]]
+		if InputPopup then
+			InputPopup.Visible = false
+		end
+
+		if ConfirmPopup then
+			ConfirmPopup.Visible = false
+		end
+
+		if GiveItemPopup then
+			GiveItemPopup.Visible = false
+		end
+
+		if PopupOverlay then
+			PopupOverlay.Visible = false
+		end
+
+		v19 = nil
+	end)
+end
+
+if GiveItemPopup then
+	local GiveItemClose = GiveItemPopup:FindFirstChild("GiveItemClose")
+
+	if GiveItemClose then
+		GiveItemClose.MouseButton1Click:Connect(function() --[[ Line: 405 | Upvalues: InputPopup (copy), ConfirmPopup (copy), GiveItemPopup (copy), PopupOverlay (copy), v19 (ref) ]]
+			if InputPopup then
+				InputPopup.Visible = false
+			end
+
+			if ConfirmPopup then
+				ConfirmPopup.Visible = false
+			end
+
+			if GiveItemPopup then
+				GiveItemPopup.Visible = false
+			end
+
+			if not PopupOverlay then
+				v19 = nil
+
+				return
+			end
+
+			PopupOverlay.Visible = false
+			v19 = nil
+		end)
+	end
+end
+
+local function showGiveItemPopup(p1) --[[ showGiveItemPopup | Line: 414 | Upvalues: GiveItemPopup (copy), v17 (ref), cmd (copy), InputPopup (copy), ConfirmPopup (copy), PopupOverlay (copy), v19 (ref), t (copy) ]]
+	if not GiveItemPopup then
+		return
+	end
+
+	local v1 = tostring(p1 or "")
+
+	if v1 == "" then
+		return
+	end
+
+	if not v17 then
+		v17 = cmd("getConfigItems").items or {}
+	end
+
+	if InputPopup then
+		InputPopup.Visible = false
+	end
+
+	if ConfirmPopup then
+		ConfirmPopup.Visible = false
+	end
+
+	if GiveItemPopup then
+		GiveItemPopup.Visible = false
+	end
+
+	if PopupOverlay then
+		PopupOverlay.Visible = false
+	end
+
+	v19 = nil
+
+	local GiveItemTitle = GiveItemPopup:FindFirstChild("GiveItemTitle")
+	local GiveItemSearch = GiveItemPopup:FindFirstChild("GiveItemSearch")
+
+	if GiveItemTitle then
+		GiveItemTitle.Text = "Give Item \226\134\146 " .. v1
+	end
+
+	if GiveItemSearch then
+		GiveItemSearch.Text = ""
+	end
+
+	local GiveItemScroll = GiveItemPopup:FindFirstChild("GiveItemScroll")
+	local v3 = GiveItemScroll and GiveItemScroll:FindFirstChild("GiveItemEntryTemplate")
+
+	if PopupOverlay then
+		PopupOverlay.Visible = true
+	end
+
+	GiveItemPopup.Visible = true
+
+	local function renderItems(p1) --[[ renderItems | Line: 437 | Upvalues: GiveItemScroll (copy), v17 (ref), v3 (copy), t (ref), v1 (copy), cmd (ref), InputPopup (ref), ConfirmPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+		if not GiveItemScroll then
+			return
+		end
+
+		for i, v in ipairs(GiveItemScroll:GetChildren()) do
+			if v:IsA("TextButton") and v.Name ~= "GiveItemEntryTemplate" then
+				v:Destroy()
+			end
+		end
+
+		local v2, count = (p1 or ""):lower(), 0
+
+		for i, v in ipairs(v17) do
+			local v32
+			local v4 = v.name and v.name:lower():find(v2, 1, true)
+
+			if v2 == "" or (v4 or v.brand and v.brand:lower():find(v2, 1, true)) then
+				if v3 then
+					v32 = v3:Clone()
+				else
+					local TextButton = Instance.new("TextButton")
+
+					TextButton.Font = Enum.Font.GothamMedium
+					TextButton.TextSize = 12
+					TextButton.TextColor3 = t.text
+					TextButton.BackgroundColor3 = t.card
+					TextButton.Size = UDim2.new(1, 0, 0, 28)
+					TextButton.TextXAlignment = Enum.TextXAlignment.Left
+					TextButton.AutoButtonColor = false
+					TextButton.BorderSizePixel = 0
+
+					local UICorner = Instance.new("UICorner")
+
+					UICorner.CornerRadius = UDim.new(0, 4)
+					UICorner.Parent = TextButton
+
+					local UIPadding = Instance.new("UIPadding")
+
+					UIPadding.PaddingLeft = UDim.new(0, 8)
+					UIPadding.Parent = TextButton
+					v32 = TextButton
+				end
+
+				v32.Name = "GiveItem_" .. i
+
+				local v14 = tonumber(v.fairPrice) or 0
+
+				v32.Text = "  [" .. (v.category or "?") .. "] " .. (v.brand or "") .. " - " .. (v.name or "?") .. " | " .. (if v14 >= 1000000 then "$" .. string.format("%.1fM", v14 / 1000000) elseif v14 >= 1000 then "$" .. string.format("%.1fK", v14 / 1000) else "$" .. tostring(v14))
+				v32.Visible = true
+				v32.LayoutOrder = i
+				v32.Parent = GiveItemScroll
+
+				local v16 = v1
+
+				v32.MouseButton1Click:Connect(function() --[[ Line: 476 | Upvalues: v (copy), cmd (ref), v16 (copy), InputPopup (ref), ConfirmPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+					local t = {
+						id = v.id,
+						name = v.name,
+						brand = v.brand,
+						rarity = v.rarity,
+						fairPrice = v.fairPrice,
+						category = v.category
+					}
+
+					if v.sourceType then
+						t.sourceType = v.sourceType
+					end
+
+					if v.customModelName then
+						t.customModelName = v.customModelName
+					end
+
+					if v.isMultiPart then
+						t.isMultiPart = v.isMultiPart
+					end
+
+					if v.accessoryType then
+						t.accessoryType = v.accessoryType
+					end
+
+					local v1 = cmd("giveItem", {
+						playerName = v16,
+						itemData = t
+					})
+
+					if v1.success then
+						print("[AdminPanel] Given", v1.itemName, "\226\134\146", v1.givenTo)
+					elseif v1.error then
+						warn("[AdminPanel] Give failed:", v1.error)
+					end
+
+					if InputPopup then
+						InputPopup.Visible = false
+					end
+
+					if ConfirmPopup then
+						ConfirmPopup.Visible = false
+					end
+
+					if GiveItemPopup then
+						GiveItemPopup.Visible = false
+					end
+
+					if PopupOverlay then
+						PopupOverlay.Visible = false
+					end
+
+					v19 = nil
+				end)
+				count = count + 1
+
+				if count >= 100 then
+					break
+				end
+			end
+		end
+	end
+
+	renderItems("")
+
+	if not GiveItemSearch then
+		return
+	end
+
+	GiveItemSearch:GetPropertyChangedSignal("Text"):Connect(function() --[[ Line: 508 | Upvalues: GiveItemPopup (ref), renderItems (copy), GiveItemSearch (copy) ]]
+		if not GiveItemPopup.Visible then
+			return
+		end
+
+		renderItems(GiveItemSearch.Text)
+	end)
+end
+
+local t4 = {
+	Players = PlayersTab,
+	Shops = ShopsTab,
+	Logs = LogsTab,
+	Clans = ClansTab,
+	Banned = BannedTab
+}
+
+if ServerTab then
+	t4.Server = ServerTab
+end
+
+if EventTab then
+	t4.Event = EventTab
+end
+
+local function switchTab(p1) --[[ switchTab | Line: 528 | Upvalues: v13 (ref), t4 (copy), TabBar (copy), t (copy) ]]
+	v13 = p1
+
+	for k, v in pairs(t4) do
+		if v then
+			v.Visible = k == p1
+		end
+	end
+
+	if not TabBar then
+		return
+	end
+
+	for i, v in ipairs(TabBar:GetChildren()) do
+		if v:IsA("TextButton") then
+			if v.Name:gsub("Tab_", "") == p1 then
+				v.BackgroundColor3 = t.accent
+				v.TextColor3 = t.textBright
+
+				continue
+			end
+
+			v.BackgroundColor3 = t.panel
+			v.TextColor3 = t.textDim
+		end
+	end
+end
+
+if TabBar then
+	if not TabBar:FindFirstChild("Tab_Banned") then
+		local Tab_Banned = Instance.new("TextButton")
+
+		Tab_Banned.Name = "Tab_Banned"
+		Tab_Banned.Text = "\240\159\148\180 Bans"
+		Tab_Banned.Font = Enum.Font.GothamBold
+		Tab_Banned.TextSize = 11
+		Tab_Banned.TextColor3 = t.textDim
+		Tab_Banned.BackgroundColor3 = t.panel
+		Tab_Banned.BorderSizePixel = 0
+		Tab_Banned.Size = UDim2.new(0, 75, 1, 0)
+		Tab_Banned.Parent = TabBar
+
+		local UICorner = Instance.new("UICorner")
+
+		UICorner.CornerRadius = UDim.new(0, 4)
+		UICorner.Parent = Tab_Banned
+	end
+
+	if not TabBar:FindFirstChild("Tab_Clans") then
+		local Tab_Clans = Instance.new("TextButton")
+
+		Tab_Clans.Name = "Tab_Clans"
+		Tab_Clans.Text = "Clans"
+		Tab_Clans.Font = Enum.Font.GothamBold
+		Tab_Clans.TextSize = 12
+		Tab_Clans.TextColor3 = t.textDim
+		Tab_Clans.BackgroundColor3 = t.panel
+		Tab_Clans.BorderSizePixel = 0
+		Tab_Clans.Size = UDim2.new(0, 70, 1, 0)
+		Tab_Clans.Parent = TabBar
+
+		local UICorner = Instance.new("UICorner")
+
+		UICorner.CornerRadius = UDim.new(0, 4)
+		UICorner.Parent = Tab_Clans
+	end
+
+	for i, v in ipairs(TabBar:GetChildren()) do
+		if v:IsA("TextButton") then
+			local v30 = v.Name:gsub("Tab_", "")
+
+			v.MouseButton1Click:Connect(function() --[[ Line: 585 | Upvalues: switchTab (copy), v30 (copy), v7 (ref), v8 (ref), v9 (ref), v10 (ref), v11 (ref), v12 (ref) ]]
+				switchTab(v30)
+
+				if v30 == "Players" and v7 then
+					v7()
+
+					return
+				end
+
+				if v30 == "Shops" and v8 then
+					v8()
+
+					return
+				end
+
+				if v30 == "Logs" and v9 then
+					v9()
+
+					return
+				end
+
+				if v30 == "Server" and v10 then
+					v10()
+
+					return
+				end
+
+				if v30 == "Event" and v11 then
+					v11()
+
+					return
+				end
+
+				if v30 == "Banned" and v12 then
+					v12()
+				end
+			end)
+		end
+	end
+end
+
+local function showBanPopup(p1) --[[ showBanPopup | Line: 605 | Upvalues: showInputPopup (copy), cmd (copy), LocalPlayer (copy), v7 (ref), ConfirmPopup (copy), InputPopup (copy), GiveItemPopup (copy), PopupOverlay (copy), v19 (ref) ]]
+	local v1 = showInputPopup
+	local name = p1.name
+
+	if not name then
+		name = tostring(p1.userId)
+	end
+
+	v1("\208\145\208\176\208\189: " .. name, "\208\159\209\128\208\184\209\135\208\184\208\189\208\176 \208\177\208\176\208\189\208\176...", function(p1) --[[ Line: 609 | Upvalues: showInputPopup (ref), p1 (copy), cmd (ref), LocalPlayer (ref), v7 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+		if p1 == "" then
+			p1 = "\208\157\208\176\209\128\209\131\209\136\208\181\208\189\208\184\208\181 \208\191\209\128\208\176\208\178\208\184\208\187"
+		end
+
+		showInputPopup("\208\161\209\128\208\190\208\186 (\208\188\208\184\208\189 \208\184\208\187\208\184 \'perm\'):", "60 | 1440 | perm", function(p13) --[[ Line: 611 | Upvalues: p1 (ref), p1 (ref), cmd (ref), LocalPlayer (ref), v7 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+			local v12
+
+			if p13:lower() == "perm" or p13 == "-1" then
+				v12 = -1
+			else
+				local v2 = tonumber(p13)
+
+				if v2 and not (v2 < 1) then
+					v12 = v2 * 60
+				end
+			end
+
+			local name = p1.name
+
+			if not name then
+				name = tostring(p1.userId)
+			end
+
+			local v6 = p1
+			local v8 = if v12 == -1 then "\208\159\208\149\208\160\208\156" else math.floor(v12 / 60) .. " \208\188\208\184\208\189"
+			local v9 = "\208\151\208\176\208\177\208\176\208\189\208\184\209\130\209\140 " .. name .. "?\n\208\159\209\128\208\184\209\135\208\184\208\189\208\176: " .. v6 .. "\n\208\161\209\128\208\190\208\186: " .. v8
+
+			local function f102() --[[ Line: 623 | Upvalues: cmd (ref), p1 (ref), p1 (ref), v12 (ref), LocalPlayer (ref), v7 (ref) ]]
+				local v122 = cmd("banPlayer", {
+					userId = p1.userId,
+					playerName = p1.name,
+					reason = p1,
+					duration = v12
+				})
+
+				if v122.success then
+					p1.isBanned = true
+
+					local t2 = {
+						reason = p1,
+						bannedBy = LocalPlayer.Name
+					}
+
+					t2.expiresAt = if v12 == -1 then -1 else os.time() + v12
+					p1.banData = t2
+
+					if v7 then
+						v7()
+					end
+				else
+					warn("[AdminPanel] Ban failed:", v122.error)
+				end
+			end
+
+			if ConfirmPopup then
+				if InputPopup then
+					InputPopup.Visible = false
+				end
+
+				if ConfirmPopup then
+					ConfirmPopup.Visible = false
+				end
+
+				if GiveItemPopup then
+					GiveItemPopup.Visible = false
+				end
+
+				if PopupOverlay then
+					PopupOverlay.Visible = false
+				end
+
+				v19 = nil
+
+				local ConfirmTitle = ConfirmPopup:FindFirstChild("ConfirmTitle")
+
+				if ConfirmTitle then
+					ConfirmTitle.Text = v9
+				end
+
+				v19 = f102
+
+				if PopupOverlay then
+					PopupOverlay.Visible = true
+				end
+
+				ConfirmPopup.Visible = true
+			end
+		end)
+	end)
+end
+
+local function v31(p1) --[[ renderInventoryForPlayer | Line: 648 | Upvalues: InventoryContainer (copy), cmd (copy), t (copy), addPadding (copy), addListLayout (copy), makeBtn (copy), v31 (copy), ConfirmPopup (copy), InputPopup (copy), GiveItemPopup (copy), PopupOverlay (copy), v19 (ref) ]]
+	if not InventoryContainer then
+		return
+	end
+
+	for i, v in ipairs(InventoryContainer:GetChildren()) do
+		if not (v:IsA("UIListLayout") or v:IsA("UIPadding")) then
+			v:Destroy()
+		end
+	end
+
+	local isNotOnline = p1.online ~= false
+	local list = {}
+
+	if isNotOnline and p1.name then
+		list = cmd("getPlayerInventory", {
+			playerName = p1.name
+		}).inventory or {}
+	elseif p1.userId and p1.userId ~= 0 then
+		list = cmd("getOfflinePlayerInventory", {
+			userId = p1.userId
+		}).inventory or {}
+	end
+
+	if not isNotOnline then
+		local TextLabel = Instance.new("TextLabel")
+
+		TextLabel.BackgroundTransparency = 1
+		TextLabel.Size = UDim2.new(1, 0, 0, 20)
+		TextLabel.Text = "\240\159\147\180 \208\158\209\132\208\187\208\176\208\185\208\189 \208\184\208\189\208\178\208\181\208\189\209\130\208\176\209\128\209\140 (\209\130\208\190\208\187\209\140\208\186\208\190 \209\135\209\130\208\181\208\189\208\184\208\181)"
+		TextLabel.TextColor3 = t.orange
+		TextLabel.TextSize = 10
+		TextLabel.Font = Enum.Font.GothamMedium
+		TextLabel.TextXAlignment = Enum.TextXAlignment.Center
+		TextLabel.LayoutOrder = 0
+		TextLabel.Parent = InventoryContainer
+	end
+
+	if #list == 0 then
+		local TextLabel = Instance.new("TextLabel")
+
+		TextLabel.BackgroundTransparency = 1
+		TextLabel.Size = UDim2.new(1, 0, 0, 28)
+		TextLabel.Text = "\208\152\208\189\208\178\208\181\208\189\209\130\208\176\209\128\209\140 \208\191\209\131\209\129\209\130"
+		TextLabel.TextColor3 = t.textDim
+		TextLabel.TextSize = 13
+		TextLabel.Font = Enum.Font.GothamMedium
+		TextLabel.TextXAlignment = Enum.TextXAlignment.Center
+		TextLabel.LayoutOrder = 1
+		TextLabel.Parent = InventoryContainer
+
+		return
+	end
+
+	for i, v in ipairs(list) do
+		local Frame = Instance.new("Frame")
+
+		Frame.Name = "InvItem_" .. i
+		Frame.Size = UDim2.new(1, 0, 0, 0)
+		Frame.AutomaticSize = Enum.AutomaticSize.Y
+		Frame.BackgroundColor3 = t.bg
+		Frame.BorderSizePixel = 0
+		Frame.LayoutOrder = i
+		Frame.Parent = InventoryContainer
+
+		local UICorner = Instance.new("UICorner")
+
+		UICorner.CornerRadius = UDim.new(0, 6)
+		UICorner.Parent = Frame
+		addPadding(Frame, 5, 8)
+		addListLayout(Frame, nil, 2)
+
+		local v3 = "#" .. i .. " " .. (v.name or "Unknown")
+
+		if v.equipped then
+			v3 = v3 .. " [EQUIPPED]"
+		end
+
+		local TextLabel = Instance.new("TextLabel")
+
+		TextLabel.Text = v3
+		TextLabel.Font = Enum.Font.GothamBold
+		TextLabel.TextSize = 12
+		TextLabel.TextColor3 = v.equipped and t.green or t.textBright
+		TextLabel.BackgroundTransparency = 1
+		TextLabel.Size = UDim2.new(1, 0, 0, 16)
+		TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+		TextLabel.LayoutOrder = 1
+		TextLabel.Parent = Frame
+
+		local t2 = {}
+
+		if v.category then
+			local category = v.category
+
+			if v.accessoryType then
+				category = category .. " (" .. v.accessoryType .. ")"
+			end
+
+			table.insert(t2, category)
+		end
+
+		if v.brand then
+			table.insert(t2, v.brand)
+		end
+
+		if v.rarity then
+			table.insert(t2, v.rarity)
+		end
+
+		if v.fairPrice then
+			local v5 = tonumber(v.fairPrice) or 0
+
+			table.insert(t2, if v5 >= 1000000 then "$" .. string.format("%.1fM", v5 / 1000000) elseif v5 >= 1000 then "$" .. string.format("%.1fK", v5 / 1000) else "$" .. tostring(v5))
+		end
+
+		local TextLabel2 = Instance.new("TextLabel")
+
+		TextLabel2.Text = "  " .. table.concat(t2, " | ")
+		TextLabel2.Font = Enum.Font.RobotoMono
+		TextLabel2.TextSize = 10
+		TextLabel2.TextColor3 = t.textDim
+		TextLabel2.BackgroundTransparency = 1
+		TextLabel2.Size = UDim2.new(1, 0, 0, 0)
+		TextLabel2.AutomaticSize = Enum.AutomaticSize.Y
+		TextLabel2.TextXAlignment = Enum.TextXAlignment.Left
+		TextLabel2.TextWrapped = true
+		TextLabel2.LayoutOrder = 2
+		TextLabel2.Parent = Frame
+
+		if isNotOnline then
+			local Frame2 = Instance.new("Frame")
+
+			Frame2.Size = UDim2.new(1, 0, 0, 26)
+			Frame2.BackgroundTransparency = 1
+			Frame2.LayoutOrder = 3
+			Frame2.Parent = Frame
+			addListLayout(Frame2, Enum.FillDirection.Horizontal, 4)
+			makeBtn(Frame2, "Copy", t.accent, 60, 24).MouseButton1Click:Connect(function() --[[ Line: 752 | Upvalues: cmd (ref), v (copy) ]]
+				cmd("giveCopyToAdmin", {
+					itemData = v
+				})
+			end)
+			makeBtn(Frame2, "Remove", t.red, 65, 24).MouseButton1Click:Connect(function() --[[ Line: 757 | Upvalues: v (copy), cmd (ref), p1 (copy), v31 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+				local v1 = "Remove " .. (v.name or "item") .. "?"
+
+				local function f2() --[[ Line: 758 | Upvalues: cmd (ref), p1 (ref), v (ref), v31 (ref) ]]
+					cmd("removeItem", {
+						playerName = p1.name,
+						itemUid = v.uid
+					})
+					task.wait(0.3)
+					v31(p1)
+				end
+
+				if not ConfirmPopup then
+					return
+				end
+
+				if InputPopup then
+					InputPopup.Visible = false
+				end
+
+				if ConfirmPopup then
+					ConfirmPopup.Visible = false
+				end
+
+				if GiveItemPopup then
+					GiveItemPopup.Visible = false
+				end
+
+				if PopupOverlay then
+					PopupOverlay.Visible = false
+				end
+
+				v19 = nil
+
+				local ConfirmTitle = ConfirmPopup:FindFirstChild("ConfirmTitle")
+
+				if ConfirmTitle then
+					ConfirmTitle.Text = v1
+				end
+
+				v19 = f2
+
+				if PopupOverlay then
+					PopupOverlay.Visible = true
+				end
+
+				ConfirmPopup.Visible = true
+			end)
+
+			if v.equipped then
+				makeBtn(Frame2, "Unequip", t.orange, 65, 24).MouseButton1Click:Connect(function() --[[ Line: 766 | Upvalues: cmd (ref), p1 (copy), v (copy), v31 (ref) ]]
+					cmd("unequipItem", {
+						playerName = p1.name,
+						itemUid = v.uid
+					})
+					task.wait(0.3)
+					v31(p1)
+				end)
+			elseif v.category ~= "Phone" then
+				makeBtn(Frame2, "Equip", t.green, 55, 24).MouseButton1Click:Connect(function() --[[ Line: 773 | Upvalues: cmd (ref), p1 (copy), v (copy), v31 (ref) ]]
+					cmd("equipItem", {
+						playerName = p1.name,
+						itemUid = v.uid
+					})
+					task.wait(0.3)
+					v31(p1)
+				end)
+			end
+
+			makeBtn(Frame2, "Drop", t.orange, 55, 24).MouseButton1Click:Connect(function() --[[ Line: 781 | Upvalues: cmd (ref), p1 (copy), v (copy), v31 (ref) ]]
+				cmd("dropItem", {
+					playerName = p1.name,
+					itemUid = v.uid
+				})
+				task.wait(0.3)
+				v31(p1)
+			end)
+		end
+	end
+
+	if not isNotOnline then
+		return
+	end
+
+	local Frame = Instance.new("Frame")
+
+	Frame.Size = UDim2.new(1, 0, 0, 32)
+	Frame.BackgroundTransparency = 1
+	Frame.LayoutOrder = 9999
+	Frame.Parent = InventoryContainer
+	addListLayout(Frame, Enum.FillDirection.Horizontal, 6)
+
+	local v7 = makeBtn(Frame, "Clone All To Me", t.accent, 140, 28)
+
+	v7.TextSize = 12
+	v7.MouseButton1Click:Connect(function() --[[ Line: 799 | Upvalues: cmd (ref), p1 (copy), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+		local function f1() --[[ Line: 800 | Upvalues: cmd (ref), p1 (ref) ]]
+			cmd("cloneAllToAdmin", {
+				playerName = p1.name
+			})
+		end
+
+		if not ConfirmPopup then
+			return
+		end
+
+		if InputPopup then
+			InputPopup.Visible = false
+		end
+
+		if ConfirmPopup then
+			ConfirmPopup.Visible = false
+		end
+
+		if GiveItemPopup then
+			GiveItemPopup.Visible = false
+		end
+
+		if PopupOverlay then
+			PopupOverlay.Visible = false
+		end
+
+		v19 = nil
+
+		local ConfirmTitle = ConfirmPopup:FindFirstChild("ConfirmTitle")
+
+		if ConfirmTitle then
+			ConfirmTitle.Text = "Clone ALL items to yourself?"
+		end
+
+		v19 = f1
+
+		if PopupOverlay then
+			PopupOverlay.Visible = true
+		end
+
+		ConfirmPopup.Visible = true
+	end)
+
+	local v8 = makeBtn(Frame, "Clear All", t.red, 90, 28)
+
+	v8.TextSize = 12
+	v8.MouseButton1Click:Connect(function() --[[ Line: 806 | Upvalues: p1 (copy), cmd (ref), v31 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+		local v1 = "DELETE ALL from " .. p1.name .. "?"
+
+		local function f2() --[[ Line: 807 | Upvalues: cmd (ref), p1 (ref), v31 (ref) ]]
+			cmd("clearInventory", {
+				playerName = p1.name
+			})
+			task.wait(0.3)
+			v31(p1)
+		end
+
+		if not ConfirmPopup then
+			return
+		end
+
+		if InputPopup then
+			InputPopup.Visible = false
+		end
+
+		if ConfirmPopup then
+			ConfirmPopup.Visible = false
+		end
+
+		if GiveItemPopup then
+			GiveItemPopup.Visible = false
+		end
+
+		if PopupOverlay then
+			PopupOverlay.Visible = false
+		end
+
+		v19 = nil
+
+		local ConfirmTitle = ConfirmPopup:FindFirstChild("ConfirmTitle")
+
+		if ConfirmTitle then
+			ConfirmTitle.Text = v1
+		end
+
+		v19 = f2
+
+		if PopupOverlay then
+			PopupOverlay.Visible = true
+		end
+
+		ConfirmPopup.Visible = true
+	end)
+end
+
+local function v32(p1) --[[ renderPlayerCardGlobal | Line: 815 | Upvalues: PlayerCard (copy), InventoryContainer (copy), v16 (ref), InventoryToggle (copy), v15 (ref), v14 (ref), CardInfoLabel (copy), formatTimeLeft (copy), ActionsFrame (copy), addListLayout (copy), makeBtn (copy), t (copy), cmd (copy), v32 (copy), v7 (ref), ConfirmPopup (copy), InputPopup (copy), GiveItemPopup (copy), PopupOverlay (copy), v19 (ref), showInputPopup (copy), LocalPlayer (copy) ]]
+	if not PlayerCard then
+		return
+	end
+
+	PlayerCard.Visible = true
+
+	if InventoryContainer then
+		InventoryContainer.Visible = false
+	end
+
+	v16 = false
+
+	if InventoryToggle then
+		InventoryToggle.Text = "View Inventory"
+	end
+
+	v15 = p1
+
+	local name = p1.name
+
+	if not name then
+		name = tostring(p1.userId)
+	end
+
+	v14 = name
+
+	local isNotOnline = p1.online ~= false
+	local v1 = if p1.isBanned == true then true else false
+
+	if CardInfoLabel then
+		local v2
+
+		if v1 and p1.banData then
+			local banData = p1.banData
+
+			v2 = "\n\240\159\148\180 BANNED: " .. (banData.reason or "?") .. "\n\208\144\208\180\208\188\208\184\208\189: " .. (banData.bannedBy or "?") .. " | \208\158\209\129\209\130\208\176\208\187\208\190\209\129\209\140: " .. (if banData.expiresAt == -1 then "PERM" else formatTimeLeft((math.max(0, banData.expiresAt - os.time()))))
+		else
+			v2 = ""
+		end
+
+		local v10 = tostring(p1.userId)
+		local v11
+
+		if isNotOnline then
+			local v142 = tonumber(p1.money) or 0
+
+			v11 = "\nMoney: " .. (if v142 >= 1000000 then "$" .. string.format("%.1fM", v142 / 1000000) elseif v142 >= 1000 then "$" .. string.format("%.1fK", v142 / 1000) else "$" .. tostring(v142))
+
+			if v11 then
+			else
+				v11 = ""
+			end
+		else
+			v11 = ""
+		end
+
+		CardInfoLabel.Text = "Name: " .. (p1.displayName or p1.name or "?") .. "\nUserId: " .. v10 .. v11 .. (isNotOnline and "\nItems: " .. tostring(p1.itemCount or 0) or "") .. "\nStatus: " .. (if isNotOnline then "\240\159\159\162 Online" else "\240\159\146\164 Offline") .. v2
+	end
+
+	if not ActionsFrame then
+		return
+	end
+
+	for i, v in ipairs(ActionsFrame:GetChildren()) do
+		if v:IsA("TextButton") then
+			v:SetAttribute("TargetPlayer", p1.name or "")
+			v:SetAttribute("TargetUserId", p1.userId)
+		end
+	end
+
+	local BanUnbanRow = ActionsFrame:FindFirstChild("BanUnbanRow")
+
+	if BanUnbanRow then
+		BanUnbanRow:Destroy()
+	end
+
+	local BanUnbanRow2 = Instance.new("Frame")
+
+	BanUnbanRow2.Name = "BanUnbanRow"
+	BanUnbanRow2.Size = UDim2.new(1, 0, 0, 28)
+	BanUnbanRow2.BackgroundTransparency = 1
+	BanUnbanRow2.LayoutOrder = 99
+	BanUnbanRow2.Parent = ActionsFrame
+	addListLayout(BanUnbanRow2, Enum.FillDirection.Horizontal, 4)
+
+	if v1 then
+		local v20 = makeBtn(BanUnbanRow2, "\226\156\133 \208\160\208\176\208\183\208\177\208\176\208\189\208\184\209\130\209\140", t.green, 100, 26)
+
+		v20.TextSize = 10
+		v20.MouseButton1Click:Connect(function() --[[ Line: 870 | Upvalues: p1 (copy), cmd (ref), v32 (ref), v7 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+			local name = p1.name
+
+			if not name then
+				name = tostring(p1.userId)
+			end
+
+			local v3 = "\208\160\208\176\208\183\208\177\208\176\208\189\208\184\209\130\209\140 " .. name .. "?"
+
+			local function f4() --[[ Line: 871 | Upvalues: cmd (ref), p1 (ref), v32 (ref), v7 (ref) ]]
+				if not cmd("unbanPlayer", {
+					userId = p1.userId
+				}).success then
+					return
+				end
+
+				p1.isBanned = false
+				p1.banData = nil
+				v32(p1)
+
+				if not v7 then
+					return
+				end
+
+				v7()
+			end
+
+			if not ConfirmPopup then
+				return
+			end
+
+			if InputPopup then
+				InputPopup.Visible = false
+			end
+
+			if ConfirmPopup then
+				ConfirmPopup.Visible = false
+			end
+
+			if GiveItemPopup then
+				GiveItemPopup.Visible = false
+			end
+
+			if PopupOverlay then
+				PopupOverlay.Visible = false
+			end
+
+			v19 = nil
+
+			local ConfirmTitle = ConfirmPopup:FindFirstChild("ConfirmTitle")
+
+			if ConfirmTitle then
+				ConfirmTitle.Text = v3
+			end
+
+			v19 = f4
+
+			if PopupOverlay then
+				PopupOverlay.Visible = true
+			end
+
+			ConfirmPopup.Visible = true
+		end)
+	else
+		local v21 = makeBtn(BanUnbanRow2, "\240\159\148\180 \208\151\208\176\208\177\208\176\208\189\208\184\209\130\209\140", t.red, 90, 26)
+
+		v21.TextSize = 10
+		v21.MouseButton1Click:Connect(function() --[[ Line: 885 | Upvalues: p1 (copy), showInputPopup (ref), cmd (ref), LocalPlayer (ref), v7 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+			local v1 = p1
+			local v2 = showInputPopup
+			local name = v1.name
+
+			if not name then
+				name = tostring(v1.userId)
+			end
+
+			v2("\208\145\208\176\208\189: " .. name, "\208\159\209\128\208\184\209\135\208\184\208\189\208\176 \208\177\208\176\208\189\208\176...", function(p1) --[[ Line: 609 | Upvalues: showInputPopup (ref), v1 (copy), cmd (ref), LocalPlayer (ref), v7 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+				if p1 == "" then
+					p1 = "\208\157\208\176\209\128\209\131\209\136\208\181\208\189\208\184\208\181 \208\191\209\128\208\176\208\178\208\184\208\187"
+				end
+
+				showInputPopup("\208\161\209\128\208\190\208\186 (\208\188\208\184\208\189 \208\184\208\187\208\184 \'perm\'):", "60 | 1440 | perm", function(p13) --[[ Line: 611 | Upvalues: v1 (ref), p1 (ref), cmd (ref), LocalPlayer (ref), v7 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+					local v12
+
+					if p13:lower() == "perm" or p13 == "-1" then
+						v12 = -1
+					else
+						local v2 = tonumber(p13)
+
+						if v2 and not (v2 < 1) then
+							v12 = v2 * 60
+						end
+					end
+
+					local name = p1.name
+
+					if not name then
+						name = tostring(p1.userId)
+					end
+
+					local v6 = p1
+					local v8 = if v12 == -1 then "\208\159\208\149\208\160\208\156" else math.floor(v12 / 60) .. " \208\188\208\184\208\189"
+					local v9 = "\208\151\208\176\208\177\208\176\208\189\208\184\209\130\209\140 " .. name .. "?\n\208\159\209\128\208\184\209\135\208\184\208\189\208\176: " .. v6 .. "\n\208\161\209\128\208\190\208\186: " .. v8
+
+					local function f102() --[[ Line: 623 | Upvalues: cmd (ref), p1 (ref), p1 (ref), v12 (ref), LocalPlayer (ref), v7 (ref) ]]
+						local v122 = cmd("banPlayer", {
+							userId = p1.userId,
+							playerName = p1.name,
+							reason = p1,
+							duration = v12
+						})
+
+						if v122.success then
+							p1.isBanned = true
+
+							local t2 = {
+								reason = p1,
+								bannedBy = LocalPlayer.Name
+							}
+
+							t2.expiresAt = if v12 == -1 then -1 else os.time() + v12
+							p1.banData = t2
+
+							if v7 then
+								v7()
+							end
+						else
+							warn("[AdminPanel] Ban failed:", v122.error)
+						end
+					end
+
+					if ConfirmPopup then
+						if InputPopup then
+							InputPopup.Visible = false
+						end
+
+						if ConfirmPopup then
+							ConfirmPopup.Visible = false
+						end
+
+						if GiveItemPopup then
+							GiveItemPopup.Visible = false
+						end
+
+						if PopupOverlay then
+							PopupOverlay.Visible = false
+						end
+
+						v19 = nil
+
+						local ConfirmTitle = ConfirmPopup:FindFirstChild("ConfirmTitle")
+
+						if ConfirmTitle then
+							ConfirmTitle.Text = v9
+						end
+
+						v19 = f102
+
+						if PopupOverlay then
+							PopupOverlay.Visible = true
+						end
+
+						ConfirmPopup.Visible = true
+					end
+				end)
+			end)
+		end)
+	end
+
+	if not isNotOnline then
+		return
+	end
+
+	local v22 = makeBtn(BanUnbanRow2, "\226\156\136 Fly ON", t.clanBlue, 70, 26)
+
+	v22.TextSize = 10
+	v22.MouseButton1Click:Connect(function() --[[ Line: 892 | Upvalues: cmd (ref), p1 (copy) ]]
+		cmd("flyPlayer", {
+			enable = true,
+			speed = 50,
+			playerName = p1.name
+		})
+	end)
+
+	local v23 = makeBtn(BanUnbanRow2, "\226\156\136 OFF", t.inactive, 55, 26)
+
+	v23.TextSize = 10
+	v23.MouseButton1Click:Connect(function() --[[ Line: 897 | Upvalues: cmd (ref), p1 (copy) ]]
+		cmd("flyPlayer", {
+			enable = false,
+			playerName = p1.name
+		})
+	end)
+end
+
+if InventoryToggle then
+	InventoryToggle.MouseButton1Click:Connect(function() --[[ Line: 905 | Upvalues: v15 (ref), v16 (ref), InventoryToggle (copy), InventoryContainer (copy), v31 (copy) ]]
+		if not v15 then
+			return
+		end
+
+		v16 = not v16
+
+		if v16 then
+			InventoryToggle.Text = "Hide Inventory"
+
+			if InventoryContainer then
+				InventoryContainer.Visible = true
+			end
+
+			v31(v15)
+		else
+			InventoryToggle.Text = "View Inventory"
+
+			if not InventoryContainer then
+				return
+			end
+
+			InventoryContainer.Visible = false
+		end
+	end)
+end
+
+local function buildPlayersTopBar() --[[ buildPlayersTopBar | Line: 920 | Upvalues: PlayerListScroll (copy), addPadding (copy), addListLayout (copy), t (copy), v23 (ref), v21 (ref), v7 (ref), makeBtn (copy), v20 (ref), v25 (ref), v22 (ref) ]]
+	local PlayersTopBar = PlayerListScroll:FindFirstChild("PlayersTopBar")
+
+	if PlayersTopBar then
+		PlayersTopBar:Destroy()
+	end
+
+	local PlayersTopBar2 = Instance.new("Frame")
+
+	PlayersTopBar2.Name = "PlayersTopBar"
+	PlayersTopBar2.Size = UDim2.new(1, 0, 0, 80)
+	PlayersTopBar2.BackgroundColor3 = Color3.fromRGB(22, 22, 32)
+	PlayersTopBar2.BorderSizePixel = 0
+	PlayersTopBar2.LayoutOrder = 1
+	PlayersTopBar2.Parent = PlayerListScroll
+
+	local UICorner = Instance.new("UICorner")
+
+	UICorner.CornerRadius = UDim.new(0, 6)
+	UICorner.Parent = PlayersTopBar2
+	addPadding(PlayersTopBar2, 4, 6)
+	addListLayout(PlayersTopBar2, nil, 4)
+
+	local PlayerSearch = Instance.new("TextBox")
+
+	PlayerSearch.Name = "PlayerSearch"
+	PlayerSearch.Size = UDim2.new(1, 0, 0, 22)
+	PlayerSearch.BackgroundColor3 = t.card
+	PlayerSearch.Text = v23
+	PlayerSearch.PlaceholderText = "\240\159\148\141 \208\159\208\190\208\184\209\129\208\186 (\208\184\208\188\209\143 / userId)..."
+	PlayerSearch.PlaceholderColor3 = t.textDim
+	PlayerSearch.TextColor3 = t.textBright
+	PlayerSearch.TextSize = 11
+	PlayerSearch.Font = Enum.Font.GothamMedium
+	PlayerSearch.ClearTextOnFocus = false
+	PlayerSearch.BorderSizePixel = 0
+	PlayerSearch.Parent = PlayersTopBar2
+
+	local UICorner2 = Instance.new("UICorner")
+
+	UICorner2.CornerRadius = UDim.new(0, 4)
+	UICorner2.Parent = PlayerSearch
+	addPadding(PlayerSearch, 0, 6)
+	PlayerSearch:GetPropertyChangedSignal("Text"):Connect(function() --[[ Line: 949 | Upvalues: v23 (ref), PlayerSearch (copy), v21 (ref), v7 (ref) ]]
+		v23 = PlayerSearch.Text
+		v21 = 1
+		task.delay(0.4, function() --[[ Line: 952 | Upvalues: v23 (ref), PlayerSearch (ref), v7 (ref) ]]
+			if v23 ~= PlayerSearch.Text or not v7 then
+				return
+			end
+
+			v7()
+		end)
+	end)
+
+	local Frame = Instance.new("Frame")
+
+	Frame.Size = UDim2.new(1, 0, 0, 22)
+	Frame.BackgroundTransparency = 1
+	Frame.Parent = PlayersTopBar2
+	addListLayout(Frame, Enum.FillDirection.Horizontal, 4)
+
+	local v3 = v20 and t.card or t.green
+	local v5 = makeBtn(Frame, "\240\159\159\162 \208\158\208\189\208\187\208\176\208\185\208\189", v3, 80, 22)
+
+	v5.TextSize = 10
+	v5.MouseButton1Click:Connect(function() --[[ Line: 969 | Upvalues: v20 (ref), v21 (ref), v23 (ref), v25 (ref), v7 (ref) ]]
+		v20 = false
+		v21 = 1
+		v23 = ""
+		v25 = false
+
+		if not v7 then
+			return
+		end
+
+		v7()
+	end)
+
+	local v8 = v20 and not v25 and t.accent or t.card
+	local v10 = makeBtn(Frame, "\240\159\140\144 \208\146\209\129\208\181", v8, 60, 22)
+
+	v10.TextSize = 10
+	v10.MouseButton1Click:Connect(function() --[[ Line: 977 | Upvalues: v20 (ref), v25 (ref), v21 (ref), v7 (ref) ]]
+		v20 = true
+		v25 = false
+		v21 = 1
+
+		if not v7 then
+			return
+		end
+
+		v7()
+	end)
+
+	local v13 = v25 and t.red or t.card
+	local v15 = makeBtn(Frame, "\240\159\148\180 \208\145\208\176\208\189\209\139", v13, 65, 22)
+
+	v15.TextSize = 10
+	v15.MouseButton1Click:Connect(function() --[[ Line: 985 | Upvalues: v20 (ref), v25 (ref), v21 (ref), v7 (ref) ]]
+		v20 = true
+		v25 = not v25
+		v21 = 1
+
+		if not v7 then
+			return
+		end
+
+		v7()
+	end)
+
+	if not v20 then
+		return
+	end
+
+	local TextLabel = Instance.new("TextLabel")
+
+	TextLabel.BackgroundTransparency = 1
+	TextLabel.Size = UDim2.new(1, -220, 1, 0)
+	TextLabel.Text = "\208\161\209\130\209\128. " .. v21 .. "/" .. v22
+	TextLabel.TextColor3 = t.textDim
+	TextLabel.TextSize = 10
+	TextLabel.Font = Enum.Font.GothamMedium
+	TextLabel.TextXAlignment = Enum.TextXAlignment.Right
+	TextLabel.Parent = Frame
+end
+
+local function buildPlayerEntry(p1, p2) --[[ buildPlayerEntry | Line: 1004 | Upvalues: t (copy), PlayerListScroll (copy), addListLayout (copy), makeBtn (copy), cmd (copy), v7 (ref), ConfirmPopup (copy), InputPopup (copy), GiveItemPopup (copy), PopupOverlay (copy), v19 (ref), showInputPopup (copy), LocalPlayer (copy), TweenService (copy), v32 (copy) ]]
+	local v1 = if p1.online == false then false else true
+	local v2 = if p1.isBanned == true then true else false
+	local TextButton = Instance.new("TextButton")
+
+	TextButton.Name = "PlayerEntry_" .. (p1.userId or p2)
+	TextButton.Size = UDim2.new(1, 0, 0, 44)
+	TextButton.AutoButtonColor = false
+	TextButton.Text = ""
+	TextButton.BorderSizePixel = 0
+	TextButton.LayoutOrder = 10 + p2
+	TextButton.BackgroundColor3 = v2 and t.banRed or (v1 and t.card or Color3.fromRGB(28, 28, 38))
+	TextButton.Parent = PlayerListScroll
+
+	local UICorner = Instance.new("UICorner")
+
+	UICorner.CornerRadius = UDim.new(0, 6)
+	UICorner.Parent = TextButton
+
+	if v2 then
+		local v4 = Color3.fromRGB(180, 40, 40)
+		local UIStroke = Instance.new("UIStroke")
+
+		UIStroke.Color = if v4 then v4 else Color3.fromRGB(58, 58, 78)
+		UIStroke.Thickness = 1
+		UIStroke.Parent = TextButton
+	end
+
+	local Frame = Instance.new("Frame")
+
+	Frame.Size = UDim2.new(0, 8, 0, 8)
+	Frame.Position = UDim2.new(0, 8, 0.5, -4)
+	Frame.BackgroundColor3 = v1 and t.green or (v2 and t.red or t.textDim)
+	Frame.BorderSizePixel = 0
+	Frame.Parent = TextButton
+
+	local UICorner2 = Instance.new("UICorner")
+
+	UICorner2.CornerRadius = UDim.new(0, 4)
+	UICorner2.Parent = Frame
+
+	local TextLabel = Instance.new("TextLabel")
+
+	TextLabel.BackgroundTransparency = 1
+	TextLabel.Size = UDim2.new(1, -120, 0, 18)
+	TextLabel.Position = UDim2.fromOffset(22, 4)
+	TextLabel.Text = (p1.name or "Unknown") .. (if v2 then "  \240\159\148\180" else "") .. (if v1 then "" else "  \240\159\146\164")
+	TextLabel.TextColor3 = v2 and t.red or (v1 and t.textBright or t.textDim)
+	TextLabel.TextSize = 12
+	TextLabel.Font = Enum.Font.GothamBold
+	TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+	TextLabel.Parent = TextButton
+
+	local v11
+
+	if v1 then
+		local v12 = tonumber(p1.money) or 0
+		local v13 = if v12 >= 1000000 then "$" .. string.format("%.1fM", v12 / 1000000) elseif v12 >= 1000 then "$" .. string.format("%.1fK", v12 / 1000) else "$" .. tostring(v12)
+
+		v11 = v13 .. "  |  " .. tostring(p1.itemCount or 0) .. " items"
+	else
+		local v15
+
+		if p1.lastSeen then
+			local v16 = os.time() - p1.lastSeen
+
+			v15 = if v16 < 3600 then math.floor(v16 / 60) .. " \208\188\208\184\208\189 \208\189\208\176\208\183\208\176\208\180" elseif v16 < 86400 then math.floor(v16 / 3600) .. " \209\135 \208\189\208\176\208\183\208\176\208\180" else math.floor(v16 / 86400) .. " \208\180\208\189 \208\189\208\176\208\183\208\176\208\180"
+		else
+			v15 = "\208\180\208\176\208\178\208\189\208\190"
+		end
+
+		v11 = "ID: " .. tostring(p1.userId) .. "  |  \208\145\209\139\208\187: " .. v15
+	end
+
+	local TextLabel2 = Instance.new("TextLabel")
+
+	TextLabel2.BackgroundTransparency = 1
+	TextLabel2.Size = UDim2.new(1, -120, 0, 14)
+	TextLabel2.Position = UDim2.fromOffset(22, 22)
+	TextLabel2.Text = v11
+	TextLabel2.TextColor3 = t.textDim
+	TextLabel2.TextSize = 10
+	TextLabel2.Font = Enum.Font.GothamMedium
+	TextLabel2.TextXAlignment = Enum.TextXAlignment.Left
+	TextLabel2.Parent = TextButton
+
+	local Frame2 = Instance.new("Frame")
+
+	Frame2.Size = UDim2.new(0, 110, 0, 40)
+	Frame2.Position = UDim2.new(1, -114, 0.5, -20)
+	Frame2.BackgroundTransparency = 1
+	Frame2.Parent = TextButton
+	addListLayout(Frame2, Enum.FillDirection.Vertical, 2)
+
+	if v2 then
+		local v17 = makeBtn(Frame2, "\226\156\133 \208\160\208\176\208\183\208\177\208\176\208\189", t.green, 108, 18)
+
+		v17.TextSize = 9
+		v17.MouseButton1Click:Connect(function() --[[ Line: 1084 | Upvalues: p1 (copy), cmd (ref), v7 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+			local name = p1.name
+
+			if not name then
+				name = tostring(p1.userId)
+			end
+
+			local v3 = "\208\160\208\176\208\183\208\177\208\176\208\189\208\184\209\130\209\140 " .. name .. "?"
+
+			local function f4() --[[ Line: 1085 | Upvalues: cmd (ref), p1 (ref), v7 (ref) ]]
+				if not (cmd("unbanPlayer", {
+					userId = p1.userId
+				}).success and v7) then
+					return
+				end
+
+				v7()
+			end
+
+			if not ConfirmPopup then
+				return
+			end
+
+			if InputPopup then
+				InputPopup.Visible = false
+			end
+
+			if ConfirmPopup then
+				ConfirmPopup.Visible = false
+			end
+
+			if GiveItemPopup then
+				GiveItemPopup.Visible = false
+			end
+
+			if PopupOverlay then
+				PopupOverlay.Visible = false
+			end
+
+			v19 = nil
+
+			local ConfirmTitle = ConfirmPopup:FindFirstChild("ConfirmTitle")
+
+			if ConfirmTitle then
+				ConfirmTitle.Text = v3
+			end
+
+			v19 = f4
+
+			if PopupOverlay then
+				PopupOverlay.Visible = true
+			end
+
+			ConfirmPopup.Visible = true
+		end)
+	else
+		local v18 = makeBtn(Frame2, "\240\159\148\180 \208\151\208\176\208\177\208\176\208\189\208\184\209\130\209\140", t.red, 108, 18)
+
+		v18.TextSize = 9
+		v18.MouseButton1Click:Connect(function() --[[ Line: 1093 | Upvalues: p1 (copy), showInputPopup (ref), cmd (ref), LocalPlayer (ref), v7 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+			local v1 = p1
+			local v2 = showInputPopup
+			local name = v1.name
+
+			if not name then
+				name = tostring(v1.userId)
+			end
+
+			v2("\208\145\208\176\208\189: " .. name, "\208\159\209\128\208\184\209\135\208\184\208\189\208\176 \208\177\208\176\208\189\208\176...", function(p1) --[[ Line: 609 | Upvalues: showInputPopup (ref), v1 (copy), cmd (ref), LocalPlayer (ref), v7 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+				if p1 == "" then
+					p1 = "\208\157\208\176\209\128\209\131\209\136\208\181\208\189\208\184\208\181 \208\191\209\128\208\176\208\178\208\184\208\187"
+				end
+
+				showInputPopup("\208\161\209\128\208\190\208\186 (\208\188\208\184\208\189 \208\184\208\187\208\184 \'perm\'):", "60 | 1440 | perm", function(p13) --[[ Line: 611 | Upvalues: v1 (ref), p1 (ref), cmd (ref), LocalPlayer (ref), v7 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+					local v12
+
+					if p13:lower() == "perm" or p13 == "-1" then
+						v12 = -1
+					else
+						local v2 = tonumber(p13)
+
+						if v2 and not (v2 < 1) then
+							v12 = v2 * 60
+						end
+					end
+
+					local name = p1.name
+
+					if not name then
+						name = tostring(p1.userId)
+					end
+
+					local v6 = p1
+					local v8 = if v12 == -1 then "\208\159\208\149\208\160\208\156" else math.floor(v12 / 60) .. " \208\188\208\184\208\189"
+					local v9 = "\208\151\208\176\208\177\208\176\208\189\208\184\209\130\209\140 " .. name .. "?\n\208\159\209\128\208\184\209\135\208\184\208\189\208\176: " .. v6 .. "\n\208\161\209\128\208\190\208\186: " .. v8
+
+					local function f102() --[[ Line: 623 | Upvalues: cmd (ref), p1 (ref), p1 (ref), v12 (ref), LocalPlayer (ref), v7 (ref) ]]
+						local v122 = cmd("banPlayer", {
+							userId = p1.userId,
+							playerName = p1.name,
+							reason = p1,
+							duration = v12
+						})
+
+						if v122.success then
+							p1.isBanned = true
+
+							local t2 = {
+								reason = p1,
+								bannedBy = LocalPlayer.Name
+							}
+
+							t2.expiresAt = if v12 == -1 then -1 else os.time() + v12
+							p1.banData = t2
+
+							if v7 then
+								v7()
+							end
+						else
+							warn("[AdminPanel] Ban failed:", v122.error)
+						end
+					end
+
+					if ConfirmPopup then
+						if InputPopup then
+							InputPopup.Visible = false
+						end
+
+						if ConfirmPopup then
+							ConfirmPopup.Visible = false
+						end
+
+						if GiveItemPopup then
+							GiveItemPopup.Visible = false
+						end
+
+						if PopupOverlay then
+							PopupOverlay.Visible = false
+						end
+
+						v19 = nil
+
+						local ConfirmTitle = ConfirmPopup:FindFirstChild("ConfirmTitle")
+
+						if ConfirmTitle then
+							ConfirmTitle.Text = v9
+						end
+
+						v19 = f102
+
+						if PopupOverlay then
+							PopupOverlay.Visible = true
+						end
+
+						ConfirmPopup.Visible = true
+					end
+				end)
+			end)
+		end)
+	end
+
+	if v1 and p1.name then
+		local v192 = makeBtn(Frame2, "\240\159\146\176 +Money", t.orange, 108, 18)
+
+		v192.TextSize = 9
+
+		local name = p1.name
+
+		v192.MouseButton1Click:Connect(function() --[[ Line: 1103 | Upvalues: showInputPopup (ref), name (copy), cmd (ref) ]]
+			showInputPopup("\208\148\208\176\209\130\209\140 \208\180\208\181\208\189\209\140\208\179\208\184 \226\134\146 " .. name, "\208\161\209\131\208\188\208\188\208\176", function(p1) --[[ Line: 1104 | Upvalues: cmd (ref), name (ref) ]]
+				local v1 = tonumber(p1)
+
+				if v1 and not (v1 <= 0) then
+					cmd("giveMoney", {
+						playerName = name,
+						amount = v1
+					})
+				end
+			end)
+		end)
+	end
+
+	TextButton.MouseEnter:Connect(function() --[[ Line: 1112 | Upvalues: v2 (copy), TweenService (ref), TextButton (copy), t (ref) ]]
+		if v2 then
+			return
+		end
+
+		TweenService:Create(TextButton, TweenInfo.new(0.1), {
+			BackgroundColor3 = t.cardHover
+		}):Play()
+	end)
+	TextButton.MouseLeave:Connect(function() --[[ Line: 1117 | Upvalues: v2 (copy), t (ref), v1 (copy), TweenService (ref), TextButton (copy) ]]
+		local v12 = v2 and t.banRed or (v1 and t.card or Color3.fromRGB(28, 28, 38))
+
+		TweenService:Create(TextButton, TweenInfo.new(0.1), {
+			BackgroundColor3 = v12
+		}):Play()
+	end)
+	TextButton.MouseButton1Click:Connect(function() --[[ Line: 1123 | Upvalues: v32 (ref), p1 (copy) ]]
+		v32(p1)
+	end)
+end
+
+local function buildPaginationBar(p1, p2, p3, p4, p5) --[[ buildPaginationBar | Line: 1128 | Upvalues: addListLayout (copy), makeBtn (copy), t (copy) ]]
+	local PaginationBar = Instance.new("Frame")
+
+	PaginationBar.Name = "PaginationBar"
+	PaginationBar.Size = UDim2.new(1, 0, 0, 28)
+	PaginationBar.BackgroundTransparency = 1
+	PaginationBar.LayoutOrder = 9998
+	PaginationBar.Parent = p1
+	addListLayout(PaginationBar, Enum.FillDirection.Horizontal, 4, Enum.HorizontalAlignment.Center)
+
+	local v1 = makeBtn(PaginationBar, "\226\151\128", t.card, 32, 24)
+
+	v1.TextSize = 12
+	v1.MouseButton1Click:Connect(p4)
+
+	local TextLabel = Instance.new("TextLabel")
+
+	TextLabel.BackgroundTransparency = 1
+	TextLabel.Size = UDim2.new(0, 80, 1, 0)
+	TextLabel.Text = p2 .. " / " .. p3
+	TextLabel.TextColor3 = t.textDim
+	TextLabel.TextSize = 11
+	TextLabel.Font = Enum.Font.GothamBold
+	TextLabel.TextXAlignment = Enum.TextXAlignment.Center
+	TextLabel.Parent = PaginationBar
+
+	local v2 = makeBtn(PaginationBar, "\226\150\182", t.card, 32, 24)
+
+	v2.TextSize = 12
+	v2.MouseButton1Click:Connect(p5)
+end
+
+v7 = function() --[[ Line: 1156 | Upvalues: PlayerListScroll (copy), PlayerCard (copy), InventoryContainer (copy), v16 (ref), v14 (ref), v15 (ref), buildPlayersTopBar (copy), v20 (ref), cmd (copy), buildPlayerEntry (copy), t (copy), v24 (ref), v21 (ref), v23 (ref), v25 (ref), v22 (ref), buildPaginationBar (copy), v7 (ref) ]]
+	if not PlayerListScroll then
+		return
+	end
+
+	for i, v in ipairs(PlayerListScroll:GetChildren()) do
+		if (v:IsA("Frame") or (v:IsA("TextButton") or v:IsA("TextLabel"))) and v.Name ~= "PlayerEntryTemplate" then
+			v:Destroy()
+		end
+	end
+
+	if PlayerCard then
+		PlayerCard.Visible = false
+	end
+
+	if InventoryContainer then
+		InventoryContainer.Visible = false
+	end
+
+	v16 = false
+	v14 = nil
+	v15 = nil
+	buildPlayersTopBar()
+
+	if v20 then
+		if not v24 then
+			v24 = true
+
+			local LoadingLabel = Instance.new("TextLabel")
+
+			LoadingLabel.Name = "LoadingLabel"
+			LoadingLabel.BackgroundTransparency = 1
+			LoadingLabel.Size = UDim2.new(1, 0, 0, 30)
+			LoadingLabel.Text = "\226\154\161 \208\151\208\176\208\179\209\128\209\131\208\183\208\186\208\176 \208\184\208\183 \208\191\208\176\208\188\209\143\209\130\208\184..."
+			LoadingLabel.TextColor3 = t.textDim
+			LoadingLabel.TextSize = 12
+			LoadingLabel.Font = Enum.Font.GothamMedium
+			LoadingLabel.TextXAlignment = Enum.TextXAlignment.Center
+			LoadingLabel.LayoutOrder = 100
+			LoadingLabel.Parent = PlayerListScroll
+			task.spawn(function() --[[ Line: 1205 | Upvalues: cmd (ref), v21 (ref), v23 (ref), v25 (ref), v24 (ref), v22 (ref), LoadingLabel (copy), buildPlayerEntry (ref), buildPaginationBar (ref), PlayerListScroll (ref), v7 (ref), t (ref) ]]
+				local v1 = cmd("getGlobalPlayers", {
+					page = v21,
+					filter = v23,
+					bannedOnly = v25
+				})
+
+				v24 = false
+				v22 = v1.totalPages or 1
+
+				local v2 = v21
+				local v3 = v22
+
+				v21 = math.min(v2, v3)
+
+				if LoadingLabel and LoadingLabel.Parent then
+					LoadingLabel:Destroy()
+				end
+
+				local v4 = v1.players or {}
+
+				for i, v in ipairs(v4) do
+					buildPlayerEntry(v, i)
+				end
+
+				if v22 > 1 then
+					buildPaginationBar(PlayerListScroll, v21, v22, function() --[[ Line: 1222 | Upvalues: v21 (ref), v7 (ref) ]]
+						if not (v21 > 1) then
+							return
+						end
+
+						v21 = v21 - 1
+						v7()
+					end, function() --[[ Line: 1225 | Upvalues: v21 (ref), v22 (ref), v7 (ref) ]]
+						if not (v21 < v22) then
+							return
+						end
+
+						v21 = v21 + 1
+						v7()
+					end)
+				end
+
+				if #v4 == 0 then
+					local TextLabel = Instance.new("TextLabel")
+
+					TextLabel.BackgroundTransparency = 1
+					TextLabel.Size = UDim2.new(1, 0, 0, 30)
+					TextLabel.Text = if v25 then "\208\157\208\181\209\130 \208\183\208\176\208\177\208\176\208\189\208\181\208\189\208\189\209\139\209\133" else "\208\157\208\184\209\135\208\181\208\179\208\190 \208\189\208\181 \208\189\208\176\208\185\208\180\208\181\208\189\208\190"
+					TextLabel.TextColor3 = t.textDim
+					TextLabel.TextSize = 12
+					TextLabel.Font = Enum.Font.GothamMedium
+					TextLabel.TextXAlignment = Enum.TextXAlignment.Center
+					TextLabel.LayoutOrder = 999
+					TextLabel.Parent = PlayerListScroll
+				end
+
+				local TextLabel = Instance.new("TextLabel")
+
+				TextLabel.BackgroundTransparency = 1
+				TextLabel.Size = UDim2.new(1, 0, 0, 16)
+
+				local v72 = tostring(v1.totalCount or 0)
+				local v8 = v21
+				local v9 = v22
+
+				TextLabel.Text = "\208\146\209\129\208\181\208\179\208\190 \208\178 \208\177\208\176\208\183\208\181: " .. v72 .. " | \208\161\209\130\209\128. " .. tostring(v8) .. "/" .. tostring(v9)
+				TextLabel.TextColor3 = t.textDim
+				TextLabel.TextSize = 9
+				TextLabel.Font = Enum.Font.GothamMedium
+				TextLabel.TextXAlignment = Enum.TextXAlignment.Center
+				TextLabel.LayoutOrder = 9999
+				TextLabel.Parent = PlayerListScroll
+			end)
+		end
+	else
+		local v1 = cmd("getPlayers").players or {}
+
+		for i, v in ipairs(v1) do
+			buildPlayerEntry(v, i)
+		end
+
+		if #v1 ~= 0 then
+			return
+		end
+
+		local TextLabel = Instance.new("TextLabel")
+
+		TextLabel.BackgroundTransparency = 1
+		TextLabel.Size = UDim2.new(1, 0, 0, 30)
+		TextLabel.Text = "\208\157\208\181\209\130 \208\184\208\179\209\128\208\190\208\186\208\190\208\178 \208\190\208\189\208\187\208\176\208\185\208\189"
+		TextLabel.TextColor3 = t.textDim
+		TextLabel.TextSize = 12
+		TextLabel.Font = Enum.Font.GothamMedium
+		TextLabel.TextXAlignment = Enum.TextXAlignment.Center
+		TextLabel.LayoutOrder = 999
+		TextLabel.Parent = PlayerListScroll
+	end
+end
+
+local function setupActionHandlers() --[[ setupActionHandlers | Line: 1260 | Upvalues: ActionsFrame (copy), showInputPopup (copy), cmd (copy), v7 (ref), showGiveItemPopup (copy), v16 (ref), v15 (ref), v31 (copy), ConfirmPopup (copy), InputPopup (copy), GiveItemPopup (copy), PopupOverlay (copy), v19 (ref), v18 (ref), LocalPlayer (copy), Players (copy) ]]
+	if not ActionsFrame then
+		return
+	end
+
+	for i, v in ipairs(ActionsFrame:GetChildren()) do
+		if v:IsA("TextButton") then
+			local v1 = v.Name:gsub("Action_", "")
+
+			v.MouseButton1Click:Connect(function() --[[ Line: 1265 | Upvalues: v (copy), v1 (copy), showInputPopup (ref), cmd (ref), v7 (ref), showGiveItemPopup (ref), v16 (ref), v15 (ref), v31 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref), v18 (ref), LocalPlayer (ref), Players (ref) ]]
+				local v12 = v:GetAttribute("TargetPlayer") or ""
+
+				if v12 == "" then
+					return
+				end
+
+				if v1 == "GiveMoney" then
+					showInputPopup("Give Money to " .. v12, "Enter amount", function(p1) --[[ Line: 1270 | Upvalues: cmd (ref), v12 (copy), v7 (ref) ]]
+						local v1 = tonumber(p1)
+
+						if v1 then
+							cmd("giveMoney", {
+								playerName = v12,
+								amount = v1
+							})
+							task.wait(0.3)
+							v7()
+						end
+					end)
+
+					return
+				end
+
+				if v1 == "TakeMoney" then
+					showInputPopup("Take Money from " .. v12, "Enter amount", function(p1) --[[ Line: 1277 | Upvalues: cmd (ref), v12 (copy), v7 (ref) ]]
+						local v1 = tonumber(p1)
+
+						if v1 then
+							cmd("takeMoney", {
+								playerName = v12,
+								amount = v1
+							})
+							task.wait(0.3)
+							v7()
+						end
+					end)
+
+					return
+				end
+
+				if v1 == "GiveItem" then
+					showGiveItemPopup(v12)
+
+					return
+				end
+
+				if v1 == "ClearInv" then
+					local v2 = "Clear ALL inventory of " .. v12 .. "?"
+
+					local function f3() --[[ Line: 1287 | Upvalues: cmd (ref), v12 (copy), v16 (ref), v15 (ref), v31 (ref) ]]
+						cmd("clearInventory", {
+							playerName = v12
+						})
+						task.wait(0.3)
+
+						if not (v16 and v15) then
+							return
+						end
+
+						v31(v15)
+					end
+
+					if not ConfirmPopup then
+						return
+					end
+
+					if InputPopup then
+						InputPopup.Visible = false
+					end
+
+					if ConfirmPopup then
+						ConfirmPopup.Visible = false
+					end
+
+					if GiveItemPopup then
+						GiveItemPopup.Visible = false
+					end
+
+					if PopupOverlay then
+						PopupOverlay.Visible = false
+					end
+
+					v19 = nil
+
+					local ConfirmTitle = ConfirmPopup:FindFirstChild("ConfirmTitle")
+
+					if ConfirmTitle then
+						ConfirmTitle.Text = v2
+					end
+
+					v19 = f3
+
+					if PopupOverlay then
+						PopupOverlay.Visible = true
+					end
+
+					ConfirmPopup.Visible = true
+				else
+					if v1 == "Goto" then
+						cmd("gotoPlayer", {
+							playerName = v12
+						})
+
+						return
+					end
+
+					if v1 == "Bring" then
+						cmd("bringPlayer", {
+							playerName = v12
+						})
+
+						return
+					end
+
+					if v1 == "Spectate" then
+						if v18 then
+							v18 = false
+							v.Text = "Spectate"
+							workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+
+							local Character = LocalPlayer.Character
+
+							if not Character then
+								return
+							end
+
+							local Humanoid = Character:FindFirstChildOfClass("Humanoid")
+
+							if Humanoid then
+								workspace.CurrentCamera.CameraSubject = Humanoid
+							end
+						else
+							local v4 = Players:FindFirstChild(v12)
+
+							if not (v4 and v4.Character) then
+								return
+							end
+
+							local Humanoid = v4.Character:FindFirstChildOfClass("Humanoid")
+
+							if Humanoid then
+								v18 = true
+								v.Text = "Stop Spec"
+								workspace.CurrentCamera.CameraType = Enum.CameraType.Custom
+								workspace.CurrentCamera.CameraSubject = Humanoid
+							end
+						end
+					else
+						if v1 == "Freeze" then
+							cmd("freezePlayer", {
+								playerName = v12
+							})
+
+							return
+						end
+
+						if v1 == "Unfreeze" then
+							cmd("unfreezePlayer", {
+								playerName = v12
+							})
+
+							return
+						end
+
+						if v1 == "Respawn" then
+							local v5 = "Respawn " .. v12 .. "?"
+
+							local function f6() --[[ Line: 1319 | Upvalues: cmd (ref), v12 (copy) ]]
+								cmd("respawnPlayer", {
+									playerName = v12
+								})
+							end
+
+							if not ConfirmPopup then
+								return
+							end
+
+							if InputPopup then
+								InputPopup.Visible = false
+							end
+
+							if ConfirmPopup then
+								ConfirmPopup.Visible = false
+							end
+
+							if GiveItemPopup then
+								GiveItemPopup.Visible = false
+							end
+
+							if PopupOverlay then
+								PopupOverlay.Visible = false
+							end
+
+							v19 = nil
+
+							local ConfirmTitle = ConfirmPopup:FindFirstChild("ConfirmTitle")
+
+							if ConfirmTitle then
+								ConfirmTitle.Text = v5
+							end
+
+							v19 = f6
+
+							if not PopupOverlay then
+								ConfirmPopup.Visible = true
+
+								return
+							end
+
+							PopupOverlay.Visible = true
+							ConfirmPopup.Visible = true
+
+							return
+						end
+
+						if v1 == "Kick" then
+							showInputPopup("Kick " .. v12, "Enter reason", function(p1) --[[ Line: 1323 | Upvalues: cmd (ref), v12 (copy), v7 (ref) ]]
+								if not p1 or p1 == "" then
+									return
+								end
+
+								cmd("kickPlayer", {
+									playerName = v12,
+									reason = p1
+								})
+								task.wait(0.5)
+								v7()
+							end)
+
+							return
+						end
+
+						if v1 == "Ban" then
+							if not v15 then
+								return
+							end
+
+							local v72 = v15
+							local v8 = showInputPopup
+							local name = v72.name
+
+							if not name then
+								name = tostring(v72.userId)
+							end
+
+							v8("\208\145\208\176\208\189: " .. name, "\208\159\209\128\208\184\209\135\208\184\208\189\208\176 \208\177\208\176\208\189\208\176...", function(p1) --[[ Line: 609 | Upvalues: showInputPopup (ref), v72 (copy), cmd (ref), LocalPlayer (ref), v7 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+								if p1 == "" then
+									p1 = "\208\157\208\176\209\128\209\131\209\136\208\181\208\189\208\184\208\181 \208\191\209\128\208\176\208\178\208\184\208\187"
+								end
+
+								showInputPopup("\208\161\209\128\208\190\208\186 (\208\188\208\184\208\189 \208\184\208\187\208\184 \'perm\'):", "60 | 1440 | perm", function(p13) --[[ Line: 611 | Upvalues: v72 (ref), p1 (ref), cmd (ref), LocalPlayer (ref), v7 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+									local v12
+
+									if p13:lower() == "perm" or p13 == "-1" then
+										v12 = -1
+									else
+										local v2 = tonumber(p13)
+
+										if v2 and not (v2 < 1) then
+											v12 = v2 * 60
+										end
+									end
+
+									local name = p1.name
+
+									if not name then
+										name = tostring(p1.userId)
+									end
+
+									local v6 = p1
+									local v8 = if v12 == -1 then "\208\159\208\149\208\160\208\156" else math.floor(v12 / 60) .. " \208\188\208\184\208\189"
+									local v9 = "\208\151\208\176\208\177\208\176\208\189\208\184\209\130\209\140 " .. name .. "?\n\208\159\209\128\208\184\209\135\208\184\208\189\208\176: " .. v6 .. "\n\208\161\209\128\208\190\208\186: " .. v8
+
+									local function f102() --[[ Line: 623 | Upvalues: cmd (ref), p1 (ref), p1 (ref), v12 (ref), LocalPlayer (ref), v7 (ref) ]]
+										local v122 = cmd("banPlayer", {
+											userId = p1.userId,
+											playerName = p1.name,
+											reason = p1,
+											duration = v12
+										})
+
+										if v122.success then
+											p1.isBanned = true
+
+											local t2 = {
+												reason = p1,
+												bannedBy = LocalPlayer.Name
+											}
+
+											t2.expiresAt = if v12 == -1 then -1 else os.time() + v12
+											p1.banData = t2
+
+											if v7 then
+												v7()
+											end
+										else
+											warn("[AdminPanel] Ban failed:", v122.error)
+										end
+									end
+
+									if ConfirmPopup then
+										if InputPopup then
+											InputPopup.Visible = false
+										end
+
+										if ConfirmPopup then
+											ConfirmPopup.Visible = false
+										end
+
+										if GiveItemPopup then
+											GiveItemPopup.Visible = false
+										end
+
+										if PopupOverlay then
+											PopupOverlay.Visible = false
+										end
+
+										v19 = nil
+
+										local ConfirmTitle = ConfirmPopup:FindFirstChild("ConfirmTitle")
+
+										if ConfirmTitle then
+											ConfirmTitle.Text = v9
+										end
+
+										v19 = f102
+
+										if PopupOverlay then
+											PopupOverlay.Visible = true
+										end
+
+										ConfirmPopup.Visible = true
+									end
+								end)
+							end)
+
+							return
+						end
+
+						if v1 == "Resync" then
+							cmd("resyncAccessories", {
+								playerName = v12
+							})
+
+							return
+						end
+
+						if v1 ~= "ClearStuck" then
+							return
+						end
+
+						cmd("clearStuckAccessories", {
+							playerName = v12
+						})
+					end
+				end
+			end)
+		end
+	end
+end
+
+local Frame = Instance.new("Frame")
+
+Frame.Size = UDim2.new(1, 0, 0, 56)
+Frame.BackgroundColor3 = Color3.fromRGB(22, 22, 32)
+Frame.BorderSizePixel = 0
+Frame.Parent = BannedTab
+addPadding(Frame, 4, 6)
+addListLayout(Frame, nil, 4)
+
+local TextBox = Instance.new("TextBox")
+
+TextBox.Size = UDim2.new(1, 0, 0, 22)
+TextBox.BackgroundColor3 = Color3.fromRGB(40, 20, 20)
+TextBox.Text = ""
+TextBox.PlaceholderText = "\240\159\148\141 \208\159\208\190\208\184\209\129\208\186 \208\183\208\176\208\177\208\176\208\189\208\181\208\189\208\189\209\139\209\133..."
+TextBox.PlaceholderColor3 = t.textDim
+TextBox.TextColor3 = t.textBright
+TextBox.TextSize = 11
+TextBox.Font = Enum.Font.GothamMedium
+TextBox.ClearTextOnFocus = false
+TextBox.BorderSizePixel = 0
+TextBox.Parent = Frame
+
+local UICorner = Instance.new("UICorner")
+
+UICorner.CornerRadius = UDim.new(0, 4)
+UICorner.Parent = TextBox
+addPadding(TextBox, 0, 6)
+
+local v33 = Color3.fromRGB(180, 40, 40)
+local UIStroke = Instance.new("UIStroke")
+
+UIStroke.Color = if v33 then v33 else Color3.fromRGB(58, 58, 78)
+UIStroke.Thickness = 1
+UIStroke.Parent = TextBox
+
+local Frame2 = Instance.new("Frame")
+
+Frame2.Size = UDim2.new(1, 0, 0, 22)
+Frame2.BackgroundTransparency = 1
+Frame2.Parent = Frame
+addListLayout(Frame2, Enum.FillDirection.Horizontal, 4)
+
+local v35 = makeBtn(Frame2, "\226\159\179 \208\158\208\177\208\189\208\190\208\178\208\184\209\130\209\140", t.red, 90, 22)
+
+v35.TextSize = 10
+v35.MouseButton1Click:Connect(function() --[[ Line: 1375 | Upvalues: v26 (ref), v12 (ref) ]]
+	v26 = 1
+
+	if not v12 then
+		return
+	end
+
+	v12()
+end)
+
+local BannedCountLbl = Instance.new("TextLabel")
+
+BannedCountLbl.Name = "BannedCountLbl"
+BannedCountLbl.BackgroundTransparency = 1
+BannedCountLbl.Size = UDim2.new(1, -100, 1, 0)
+BannedCountLbl.Text = "\208\151\208\176\208\179\209\128\209\131\208\183\208\186\208\176..."
+BannedCountLbl.TextColor3 = t.red
+BannedCountLbl.TextSize = 11
+BannedCountLbl.Font = Enum.Font.GothamBold
+BannedCountLbl.TextXAlignment = Enum.TextXAlignment.Right
+BannedCountLbl.Parent = Frame2
+
+local Frame3 = Instance.new("Frame")
+
+Frame3.Size = UDim2.new(1, 0, 1, -60)
+Frame3.Position = UDim2.new(0, 0, 0, 60)
+Frame3.BackgroundTransparency = 1
+Frame3.BorderSizePixel = 0
+Frame3.Parent = BannedTab
+
+local v36 = makeScroll(Frame3)
+
+TextBox:GetPropertyChangedSignal("Text"):Connect(function() --[[ Line: 1399 | Upvalues: v28 (ref), TextBox (copy), v26 (ref), v12 (ref) ]]
+	v28 = TextBox.Text
+	v26 = 1
+	task.delay(0.4, function() --[[ Line: 1402 | Upvalues: v28 (ref), TextBox (ref), v12 (ref) ]]
+		if v28 ~= TextBox.Text or not v12 then
+			return
+		end
+
+		v12()
+	end)
+end)
+
+local function buildBannedEntry(p1, p2) --[[ buildBannedEntry | Line: 1409 | Upvalues: t (copy), v36 (copy), addPadding (copy), addListLayout (copy), formatTimeLeft (copy), makeBtn (copy), cmd (copy), v12 (ref), ConfirmPopup (copy), InputPopup (copy), GiveItemPopup (copy), PopupOverlay (copy), v19 (ref), showInputPopup (copy) ]]
+	local v1 = if p1.online == true then true else false
+	local v2 = p1.banData or {}
+	local v3 = p1.banType or "PERM"
+	local Frame = Instance.new("Frame")
+
+	Frame.Name = "BannedEntry_" .. (p1.userId or p2)
+	Frame.Size = UDim2.new(1, 0, 0, 0)
+	Frame.AutomaticSize = Enum.AutomaticSize.Y
+	Frame.BackgroundColor3 = t.banRed
+	Frame.BorderSizePixel = 0
+	Frame.LayoutOrder = p2
+	Frame.Parent = v36
+
+	local UICorner = Instance.new("UICorner")
+
+	UICorner.CornerRadius = UDim.new(0, 6)
+	UICorner.Parent = Frame
+
+	local v5 = Color3.fromRGB(180, 40, 40)
+	local UIStroke = Instance.new("UIStroke")
+
+	UIStroke.Color = if v5 then v5 else Color3.fromRGB(58, 58, 78)
+	UIStroke.Thickness = 1
+	UIStroke.Parent = Frame
+	addPadding(Frame, 6, 10)
+	addListLayout(Frame, nil, 3)
+
+	local Frame2 = Instance.new("Frame")
+
+	Frame2.Size = UDim2.new(1, 0, 0, 20)
+	Frame2.BackgroundTransparency = 1
+	Frame2.LayoutOrder = 1
+	Frame2.Parent = Frame
+	addListLayout(Frame2, Enum.FillDirection.Horizontal, 6)
+
+	local TextLabel = Instance.new("TextLabel")
+
+	TextLabel.BackgroundTransparency = 1
+	TextLabel.Size = UDim2.new(0.5, 0, 1, 0)
+	TextLabel.Text = "\240\159\148\180 " .. (p1.name or "Unknown") .. (if v1 then "  \240\159\159\162ONLINE" else "")
+	TextLabel.TextColor3 = v1 and t.orange or t.red
+	TextLabel.TextSize = 13
+	TextLabel.Font = Enum.Font.GothamBold
+	TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+	TextLabel.Parent = Frame2
+
+	local TextLabel2 = Instance.new("TextLabel")
+
+	TextLabel2.BackgroundTransparency = 1
+	TextLabel2.Size = UDim2.new(0.5, 0, 1, 0)
+	TextLabel2.Text = if v3 == "PERM" then "\240\159\148\146 \208\159\208\149\208\160\208\156" else "\226\143\176 \208\158\209\129\209\130\208\176\208\187\208\190\209\129\209\140: " .. formatTimeLeft(p1.timeLeft or 0)
+	TextLabel2.TextColor3 = v3 == "PERM" and t.red or t.orange
+	TextLabel2.TextSize = 11
+	TextLabel2.Font = Enum.Font.GothamBold
+	TextLabel2.TextXAlignment = Enum.TextXAlignment.Right
+	TextLabel2.Parent = Frame2
+
+	local TextLabel3 = Instance.new("TextLabel")
+
+	TextLabel3.BackgroundTransparency = 1
+	TextLabel3.Size = UDim2.new(1, 0, 0, 0)
+	TextLabel3.AutomaticSize = Enum.AutomaticSize.Y
+	TextLabel3.Text = "\208\159\209\128\208\184\209\135\208\184\208\189\208\176: " .. (v2.reason or "?") .. "\n\208\144\208\180\208\188\208\184\208\189: " .. (v2.bannedBy or "?") .. "  |  ID: " .. tostring(p1.userId)
+	TextLabel3.TextColor3 = t.textDim
+	TextLabel3.TextSize = 10
+	TextLabel3.Font = Enum.Font.GothamMedium
+	TextLabel3.TextXAlignment = Enum.TextXAlignment.Left
+	TextLabel3.TextWrapped = true
+	TextLabel3.LayoutOrder = 2
+	TextLabel3.Parent = Frame
+
+	local Frame3 = Instance.new("Frame")
+
+	Frame3.Size = UDim2.new(1, 0, 0, 26)
+	Frame3.BackgroundTransparency = 1
+	Frame3.LayoutOrder = 3
+	Frame3.Parent = Frame
+	addListLayout(Frame3, Enum.FillDirection.Horizontal, 4)
+
+	local v15 = makeBtn(Frame3, "\226\156\133 \208\160\208\176\208\183\208\177\208\176\208\189\208\184\209\130\209\140", t.green, 100, 24)
+
+	v15.TextSize = 10
+	v15.MouseButton1Click:Connect(function() --[[ Line: 1485 | Upvalues: p1 (copy), cmd (ref), v12 (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+		local name = p1.name
+
+		if not name then
+			name = tostring(p1.userId)
+		end
+
+		local v3 = "\208\160\208\176\208\183\208\177\208\176\208\189\208\184\209\130\209\140 " .. name .. "?"
+
+		local function f4() --[[ Line: 1486 | Upvalues: cmd (ref), p1 (ref), v12 (ref) ]]
+			if not (cmd("unbanPlayer", {
+				userId = p1.userId
+			}).success and v12) then
+				return
+			end
+
+			v12()
+		end
+
+		if not ConfirmPopup then
+			return
+		end
+
+		if InputPopup then
+			InputPopup.Visible = false
+		end
+
+		if ConfirmPopup then
+			ConfirmPopup.Visible = false
+		end
+
+		if GiveItemPopup then
+			GiveItemPopup.Visible = false
+		end
+
+		if PopupOverlay then
+			PopupOverlay.Visible = false
+		end
+
+		v19 = nil
+
+		local ConfirmTitle = ConfirmPopup:FindFirstChild("ConfirmTitle")
+
+		if ConfirmTitle then
+			ConfirmTitle.Text = v3
+		end
+
+		v19 = f4
+
+		if PopupOverlay then
+			PopupOverlay.Visible = true
+		end
+
+		ConfirmPopup.Visible = true
+	end)
+
+	local v16 = makeBtn(Frame3, "\226\156\143\239\184\143 \208\152\208\183\208\188\208\181\208\189\208\184\209\130\209\140", t.orange, 90, 24)
+
+	v16.TextSize = 10
+	v16.MouseButton1Click:Connect(function() --[[ Line: 1497 | Upvalues: showInputPopup (ref), cmd (ref), p1 (copy), v2 (copy), v12 (ref) ]]
+		showInputPopup("\208\157\208\190\208\178\209\139\208\185 \209\129\209\128\208\190\208\186 (\208\188\208\184\208\189 \208\184\208\187\208\184 \'perm\'):", "60 | perm", function(p12) --[[ Line: 1498 | Upvalues: cmd (ref), p1 (ref), v2 (ref), v12 (ref) ]]
+			local v1
+
+			if p12:lower() == "perm" then
+				v1 = -1
+			else
+				local v22 = tonumber(p12)
+
+				if not v22 or v22 < 1 then
+					return
+				end
+
+				v1 = v22 * 60
+			end
+
+			if not (cmd("banPlayer", {
+				userId = p1.userId,
+				reason = v2.reason or "\208\157\208\176\209\128\209\131\209\136\208\181\208\189\208\184\208\181 \208\191\209\128\208\176\208\178\208\184\208\187",
+				duration = v1
+			}).success and v12) then
+				return
+			end
+
+			v12()
+		end)
+	end)
+
+	if v1 and p1.name then
+		local v17 = makeBtn(Frame3, "\240\159\146\184 \208\158\208\177\208\189\209\131\208\187\208\184\209\130\209\140", t.red, 90, 24)
+
+		v17.TextSize = 10
+
+		local name = p1.name
+
+		v17.MouseButton1Click:Connect(function() --[[ Line: 1520 | Upvalues: name (copy), cmd (ref), ConfirmPopup (ref), InputPopup (ref), GiveItemPopup (ref), PopupOverlay (ref), v19 (ref) ]]
+			local v1 = "\208\158\208\177\208\189\209\131\208\187\208\184\209\130\209\140 \208\180\208\181\208\189\209\140\208\179\208\184 " .. name .. "?"
+
+			local function f2() --[[ Line: 1521 | Upvalues: cmd (ref), name (ref) ]]
+				cmd("takeMoney", {
+					amount = 999999999,
+					playerName = name
+				})
+			end
+
+			if not ConfirmPopup then
+				return
+			end
+
+			if InputPopup then
+				InputPopup.Visible = false
+			end
+
+			if ConfirmPopup then
+				ConfirmPopup.Visible = false
+			end
+
+			if GiveItemPopup then
+				GiveItemPopup.Visible = false
+			end
+
+			if PopupOverlay then
+				PopupOverlay.Visible = false
+			end
+
+			v19 = nil
+
+			local ConfirmTitle = ConfirmPopup:FindFirstChild("ConfirmTitle")
+
+			if ConfirmTitle then
+				ConfirmTitle.Text = v1
+			end
+
+			v19 = f2
+
+			if PopupOverlay then
+				PopupOverlay.Visible = true
+			end
+
+			ConfirmPopup.Visible = true
+		end)
+	end
+
+	if not (v1 and p1.name) then
+		return
+	end
+
+	local v18 = makeBtn(Frame3, "\240\159\145\162 \208\154\208\184\208\186", Color3.fromRGB(100, 50, 50), 55, 24)
+
+	v18.TextSize = 9
+
+	local name = p1.name
+
+	v18.MouseButton1Click:Connect(function() --[[ Line: 1532 | Upvalues: cmd (ref), name (copy) ]]
+		cmd("kickPlayer", {
+			reason = "Banned player",
+			playerName = name
+		})
+	end)
+end
+
+local function v37() --[[ Line: 1539 | Upvalues: v36 (copy), v29 (ref), t (copy), cmd (copy), v26 (ref), v28 (ref), v27 (ref), Frame (copy), buildBannedEntry (copy), buildPaginationBar (copy), v37 (ref) ]]
+	for i, v in ipairs(v36:GetChildren()) do
+		if not (v:IsA("UIListLayout") or v:IsA("UIPadding")) then
+			v:Destroy()
+		end
+	end
+
+	if not v29 then
+		v29 = true
+
+		local TextLabel = Instance.new("TextLabel")
+
+		TextLabel.BackgroundTransparency = 1
+		TextLabel.Size = UDim2.new(1, 0, 0, 30)
+		TextLabel.Text = "\226\143\179 \208\151\208\176\208\179\209\128\209\131\208\183\208\186\208\176 \208\177\208\176\208\189-\208\187\208\184\209\129\209\130\208\176..."
+		TextLabel.TextColor3 = t.textDim
+		TextLabel.TextSize = 12
+		TextLabel.Font = Enum.Font.GothamMedium
+		TextLabel.TextXAlignment = Enum.TextXAlignment.Center
+		TextLabel.LayoutOrder = 1
+		TextLabel.Parent = v36
+		task.spawn(function() --[[ Line: 1558 | Upvalues: cmd (ref), v26 (ref), v28 (ref), v29 (ref), v27 (ref), TextLabel (copy), Frame (ref), t (ref), v36 (ref), buildBannedEntry (ref), buildPaginationBar (ref), v37 (ref) ]]
+			local v1 = cmd("getBannedPlayers", {
+				page = v26,
+				filter = v28
+			})
+
+			v29 = false
+			v27 = v1.totalPages or 1
+
+			local v2 = v26
+			local v3 = v27
+
+			v26 = math.min(v2, v3)
+
+			if TextLabel and TextLabel.Parent then
+				TextLabel:Destroy()
+			end
+
+			local BannedCountLbl = Frame:FindFirstChild("BannedCountLbl")
+
+			if BannedCountLbl then
+				BannedCountLbl.Text = "\240\159\148\180 \208\151\208\176\208\177\208\176\208\189\208\181\208\189\208\189\209\139\209\133: " .. tostring(v1.totalCount or 0)
+			end
+
+			if v1.loading then
+				local TextLabel2 = Instance.new("TextLabel")
+
+				TextLabel2.BackgroundTransparency = 1
+				TextLabel2.Size = UDim2.new(1, 0, 0, 30)
+				TextLabel2.Text = "\226\143\179 Ban index \208\181\209\137\209\145 \208\183\208\176\208\179\209\128\209\131\208\182\208\176\208\181\209\130\209\129\209\143, \208\191\208\190\208\180\208\190\208\182\208\180\208\184\209\130\208\181..."
+				TextLabel2.TextColor3 = t.orange
+				TextLabel2.TextSize = 12
+				TextLabel2.Font = Enum.Font.GothamMedium
+				TextLabel2.TextXAlignment = Enum.TextXAlignment.Center
+				TextLabel2.LayoutOrder = 1
+				TextLabel2.Parent = v36
+
+				return
+			end
+
+			local v5 = v1.players or {}
+
+			for i, v in ipairs(v5) do
+				buildBannedEntry(v, i)
+			end
+
+			if v27 > 1 then
+				buildPaginationBar(v36, v26, v27, function() --[[ Line: 1596 | Upvalues: v26 (ref), v37 (ref) ]]
+					if not (v26 > 1) then
+						return
+					end
+
+					v26 = v26 - 1
+					v37()
+				end, function() --[[ Line: 1599 | Upvalues: v26 (ref), v27 (ref), v37 (ref) ]]
+					if not (v26 < v27) then
+						return
+					end
+
+					v26 = v26 + 1
+					v37()
+				end)
+			end
+
+			if #v5 ~= 0 then
+				return
+			end
+
+			local TextLabel2 = Instance.new("TextLabel")
+
+			TextLabel2.BackgroundTransparency = 1
+			TextLabel2.Size = UDim2.new(1, 0, 0, 40)
+			TextLabel2.Text = if v28 == "" then "\240\159\142\137 \208\151\208\176\208\177\208\176\208\189\208\181\208\189\208\189\209\139\209\133 \208\189\208\181\209\130!" else "\208\157\208\184\209\135\208\181\208\179\208\190 \208\189\208\181 \208\189\208\176\208\185\208\180\208\181\208\189\208\190"
+			TextLabel2.TextColor3 = t.green
+			TextLabel2.TextSize = 14
+			TextLabel2.Font = Enum.Font.GothamBold
+			TextLabel2.TextXAlignment = Enum.TextXAlignment.Center
+			TextLabel2.LayoutOrder = 1
+			TextLabel2.Parent = v36
+		end)
+	end
+end
+
+local function renderShopStock(p1, p2) --[[ renderShopStock | Line: 1632 | Upvalues: cmd (copy), t (copy), addPadding (copy), addListLayout (copy) ]]
+	local v1 = if p1 then p1:FindFirstChild("StockContainer") else p1
+
+	if not v1 then
+		return
+	end
+
+	for i, v in ipairs(v1:GetChildren()) do
+		if not (v:IsA("UIListLayout") or v:IsA("UIPadding")) then
+			v:Destroy()
+		end
+	end
+
+	local v2 = cmd("getShopStock", {
+		shopName = p2
+	}).stock or {}
+
+	if #v2 == 0 then
+		local TextLabel = Instance.new("TextLabel")
+
+		TextLabel.Text = "  No stock data available"
+		TextLabel.Font = Enum.Font.GothamMedium
+		TextLabel.TextSize = 11
+		TextLabel.TextColor3 = t.textDim
+		TextLabel.BackgroundTransparency = 1
+		TextLabel.Size = UDim2.new(1, 0, 0, 22)
+		TextLabel.LayoutOrder = 1
+		TextLabel.Parent = v1
+
+		return
+	end
+
+	for i, v in ipairs(v2) do
+		local Frame = Instance.new("Frame")
+
+		Frame.Size = UDim2.new(1, 0, 0, 0)
+		Frame.AutomaticSize = Enum.AutomaticSize.Y
+		Frame.BackgroundColor3 = t.bg
+		Frame.BorderSizePixel = 0
+		Frame.LayoutOrder = i
+		Frame.Parent = v1
+
+		local UICorner = Instance.new("UICorner")
+
+		UICorner.CornerRadius = UDim.new(0, 4)
+		UICorner.Parent = Frame
+		addPadding(Frame, 4, 6)
+		addListLayout(Frame, nil, 2)
+
+		local TextLabel = Instance.new("TextLabel")
+
+		TextLabel.Text = "Slot " .. i .. ": " .. (v.name or "[EMPTY]")
+		TextLabel.Font = Enum.Font.GothamBold
+		TextLabel.TextSize = 11
+		TextLabel.TextColor3 = v.available and t.text or t.textDim
+		TextLabel.BackgroundTransparency = 1
+		TextLabel.Size = UDim2.new(1, 0, 0, 16)
+		TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+		TextLabel.LayoutOrder = 1
+		TextLabel.Parent = Frame
+	end
+end
+
+local function v38() --[[ Line: 1674 | Upvalues: ShopListScroll (copy), cmd (copy), ShopEntryTemplate (copy), t (copy), v38 (ref), renderShopStock (copy) ]]
+	if not ShopListScroll then
+		return
+	end
+
+	for i, v in ipairs(ShopListScroll:GetChildren()) do
+		if v:IsA("Frame") and v.Name ~= "ShopEntryTemplate" then
+			v:Destroy()
+		end
+	end
+
+	local v1 = cmd("getShops").shops or {}
+
+	for i, v in ipairs(v1) do
+		if not ShopEntryTemplate then
+			break
+		end
+
+		local v2 = ShopEntryTemplate:Clone()
+
+		v2.Name = "ShopEntry_" .. (v.name or i)
+		v2.Visible = true
+		v2.LayoutOrder = 10 + i
+		v2.Parent = ShopListScroll
+
+		local ShopTitle = v2:FindFirstChild("ShopTitle")
+
+		if ShopTitle then
+			ShopTitle.Text = (v.name or "?") .. " \226\128\148 " .. (if v.isOpen then "OPEN" else "CLOSED")
+			ShopTitle.TextColor3 = v.isOpen and t.green or t.red
+		end
+
+		local ShopInfo = v2:FindFirstChild("ShopInfo")
+
+		if ShopInfo then
+			local v8 = tonumber(v.timer or 0) or 0
+
+			ShopInfo.Text = "Timer: " .. string.format("%d:%02d", math.floor(v8 / 60), (math.floor(v8 % 60)))
+		end
+
+		local ButtonRow = v2:FindFirstChild("ButtonRow")
+
+		if ButtonRow then
+			local ToggleBtn = ButtonRow:FindFirstChild("ToggleBtn")
+			local RestockBtn = ButtonRow:FindFirstChild("RestockBtn")
+			local ViewStockBtn = ButtonRow:FindFirstChild("ViewStockBtn")
+			local StockContainer = v2:FindFirstChild("StockContainer")
+
+			if ToggleBtn then
+				ToggleBtn.Text = if v.isOpen then "Close" else "Open"
+				ToggleBtn.BackgroundColor3 = v.isOpen and t.red or t.green
+				ToggleBtn.MouseButton1Click:Connect(function() --[[ Line: 1705 | Upvalues: v (copy), cmd (ref), v38 (ref) ]]
+					if v.isOpen then
+						cmd("closeShop", {
+							shopName = v.name
+						})
+					else
+						cmd("openShop", {
+							shopName = v.name
+						})
+					end
+
+					task.wait(0.5)
+					v38()
+				end)
+			end
+
+			if RestockBtn then
+				local name = v.name
+
+				RestockBtn.MouseButton1Click:Connect(function() --[[ Line: 1713 | Upvalues: cmd (ref), name (copy), v38 (ref) ]]
+					cmd("restockShop", {
+						shopName = name
+					})
+					task.wait(0.5)
+					v38()
+				end)
+			end
+
+			if ViewStockBtn and StockContainer then
+				local v11 = false
+				local name = v.name
+
+				ViewStockBtn.MouseButton1Click:Connect(function() --[[ Line: 1719 | Upvalues: v11 (ref), ViewStockBtn (copy), StockContainer (copy), renderShopStock (ref), v2 (copy), name (copy) ]]
+					v11 = not v11
+
+					if v11 then
+						ViewStockBtn.Text = "Hide Stock"
+						StockContainer.Visible = true
+						renderShopStock(v2, name)
+					else
+						ViewStockBtn.Text = "View Stock"
+						StockContainer.Visible = false
+					end
+				end)
+			end
+		end
+	end
+end
+
+local function setupGlobalShopControls() --[[ setupGlobalShopControls | Line: 1733 | Upvalues: GlobalControls (copy), cmd (copy), v38 (ref) ]]
+	if not GlobalControls then
+		return
+	end
+
+	for i, v in ipairs({
+		{
+			name = "OpenAll",
+			cmd2 = "openAllShops",
+			refresh = true
+		},
+		{
+			name = "CloseAll",
+			cmd2 = "closeAllShops",
+			refresh = true
+		},
+		{
+			name = "RestockAll",
+			cmd2 = "restockAllShops",
+			refresh = true
+		},
+		{
+			name = "ForceRotation",
+			cmd2 = "forceRotationAll",
+			refresh = true
+		},
+		{
+			name = "CleanupDrops",
+			cmd2 = "cleanupDrops",
+			refresh = false
+		}
+	}) do
+		local v1 = GlobalControls:FindFirstChild("Global_" .. v.name)
+
+		if v1 then
+			v1.MouseButton1Click:Connect(function() --[[ Line: 1746 | Upvalues: cmd (ref), v (copy), v38 (ref) ]]
+				cmd(v.cmd2, {})
+
+				if not v.refresh then
+					return
+				end
+
+				task.wait(0.5)
+				v38()
+			end)
+		end
+	end
+end
+
+local function f39() --[[ Line: 1758 | Upvalues: LogScroll (copy), cmd (copy), t2 (ref), t (copy), LogEntryTemplate (copy) ]]
+	if not LogScroll then
+		return
+	end
+
+	for i, v in ipairs(LogScroll:GetChildren()) do
+		if v:IsA("TextLabel") and v.Name ~= "LogEntryTemplate" then
+			v:Destroy()
+		end
+	end
+
+	t2 = cmd("getLogs").logs or {}
+
+	if #t2 == 0 then
+		local TextLabel = Instance.new("TextLabel")
+
+		TextLabel.Text = "  No logs yet."
+		TextLabel.Font = Enum.Font.GothamMedium
+		TextLabel.TextSize = 13
+		TextLabel.TextColor3 = t.textDim
+		TextLabel.BackgroundTransparency = 1
+		TextLabel.Size = UDim2.new(1, 0, 0, 28)
+		TextLabel.LayoutOrder = 1
+		TextLabel.Parent = LogScroll
+
+		return
+	end
+
+	for i, v in ipairs(t2) do
+		local v2, v3, v4
+
+		if LogEntryTemplate then
+			v2 = LogEntryTemplate:Clone()
+		else
+			local TextLabel = Instance.new("TextLabel")
+
+			TextLabel.Font = Enum.Font.RobotoMono
+			TextLabel.TextSize = 11
+			TextLabel.TextColor3 = t.textDim
+			TextLabel.BackgroundColor3 = t.card
+			TextLabel.Size = UDim2.new(1, 0, 0, 22)
+			TextLabel.TextXAlignment = Enum.TextXAlignment.Left
+			TextLabel.BorderSizePixel = 0
+
+			local UICorner = Instance.new("UICorner")
+
+			UICorner.CornerRadius = UDim.new(0, 4)
+			UICorner.Parent = TextLabel
+
+			local UIPadding = Instance.new("UIPadding")
+
+			UIPadding.PaddingLeft = UDim.new(0, 8)
+			UIPadding.Parent = TextLabel
+			v2 = TextLabel
+		end
+
+		local v6 = os.date("%H:%M", v.time)
+
+		v2.Name = "LogEntry_" .. i
+
+		if v.details and v.details ~= "" then
+			v3 = " | " .. v.details
+			v4 = v6
+		else
+			v4 = v6
+			v3 = ""
+		end
+
+		v2.Text = "  [" .. v4 .. "] " .. (v.admin or "?") .. " \226\128\148 " .. (v.action or "?") .. v3
+		v2.Visible = true
+		v2.LayoutOrder = i
+		v2.Parent = LogScroll
+	end
+end
+
+if LogsTopFrame then
+	local LogRefreshBtn = LogsTopFrame:FindFirstChild("LogRefreshBtn")
+	local LogClearBtn = LogsTopFrame:FindFirstChild("LogClearBtn")
+
+	if LogRefreshBtn then
+		LogRefreshBtn.MouseButton1Click:Connect(function() --[[ Line: 1805 | Upvalues: f39 (ref) ]]
+			f39()
+		end)
+	end
+
+	if LogClearBtn then
+		LogClearBtn.MouseButton1Click:Connect(function() --[[ Line: 1806 | Upvalues: cmd (copy), f39 (ref) ]]
+			cmd("clearLogs", {})
+			f39()
+		end)
+	end
+end
+
+if AdminLog then
+	AdminLog.OnClientEvent:Connect(function(p1) --[[ Line: 1810 | Upvalues: t2 (ref), v13 (ref), v5 (ref), f39 (ref) ]]
+		if not p1 then
+			return
+		end
+
+		table.insert(t2, 1, p1)
+
+		if v13 ~= "Logs" or not v5.Enabled then
+			return
+		end
+
+		f39()
+	end)
+end
+
+local function f40() --[[ Line: 1822 | Upvalues: EventCommand (copy), EventTab (copy), t (copy) ]]
+	if not EventCommand then
+		return
+	end
+
+	local t2 = {}
+
+	pcall(function() --[[ Line: 1825 | Upvalues: t2 (ref), EventCommand (ref) ]]
+		t2 = EventCommand:InvokeServer("getEventStatus", {}) or {}
+	end)
+
+	local v1 = EventTab and EventTab:FindFirstChild("EventScroll") and EventTab.EventScroll:FindFirstChild("EventStatusSection") and EventTab.EventScroll.EventStatusSection:FindFirstChild("EventStatusLabel")
+	local v2 = EventTab and (EventTab:FindFirstChild("EventScroll") and (EventTab.EventScroll:FindFirstChild("EventStatusSection") and EventTab.EventScroll.EventStatusSection:FindFirstChild("EventTimerLabel")))
+
+	if v1 then
+		v1.Text = if t2.active then "Status: ACTIVE" else "Status: Inactive"
+		v1.TextColor3 = t2.active and t.green or t.textDim
+	end
+
+	if v2 and (t2.active and t2.timeLeft) then
+		local v6 = math.max(0, (math.floor(t2.timeLeft)))
+
+		v2.Text = "Time left: " .. string.format("%d:%02d:%02d", math.floor(v6 / 3600), math.floor(v6 % 3600 / 60), v6 % 60)
+	elseif v2 then
+		v2.Text = "Time left: --:--:--"
+	end
+end
+
+local function f41() --[[ Line: 1849 | Upvalues: ServerTab (copy), cmd (copy) ]]
+	if not ServerTab then
+		return
+	end
+
+	local ServerScroll = ServerTab:FindFirstChild("ServerScroll")
+
+	if not ServerScroll then
+		return
+	end
+
+	local t = {}
+
+	pcall(function() --[[ Line: 1854 | Upvalues: t (ref), cmd (ref) ]]
+		t = cmd("getServerInfo", {}) or {}
+	end)
+
+	local QuickSection = ServerScroll:FindFirstChild("QuickSection")
+
+	if QuickSection then
+		local ServerInfoLabel = QuickSection:FindFirstChild("ServerInfoLabel")
+
+		if ServerInfoLabel and t.playerCount then
+			local v1 = t.uptime or 0
+
+			ServerInfoLabel.Text = string.format("Players: %d/%d | Uptime: %s | Cache: %d | Bans: %d", t.playerCount, t.maxPlayers or 0, string.format("%d:%02d:%02d", math.floor(v1 / 3600), math.floor(v1 % 3600 / 60), v1 % 60), t.cachedPlayers or 0, t.banIndexSize or 0)
+		end
+	end
+end
+
+local function togglePanel() --[[ togglePanel | Line: 1873 | Upvalues: v5 (ref), v13 (ref), v7 (ref), v38 (ref), f39 (ref), f41 (ref), f40 (ref), v37 (ref), t3 (ref) ]]
+	v5.Enabled = not v5.Enabled
+
+	if not v5.Enabled then
+		return
+	end
+
+	if v13 == "Players" then
+		v7()
+
+		return
+	end
+
+	if v13 == "Shops" then
+		v38()
+
+		return
+	end
+
+	if v13 == "Logs" then
+		f39()
+
+		return
+	end
+
+	if v13 == "Server" then
+		f41()
+
+		return
+	end
+
+	if v13 == "Event" then
+		f40()
+
+		return
+	end
+
+	if v13 == "Banned" then
+		v37()
+
+		return
+	end
+
+	if v13 ~= "Clans" then
+		return
+	end
+
+	t3 = {}
+	(nil)("")
+end
+
+if Header then
+	local CloseButton = Header:FindFirstChild("CloseButton")
+
+	if CloseButton then
+		CloseButton.MouseButton1Click:Connect(function() --[[ Line: 1888 | Upvalues: v5 (ref) ]]
+			v5.Enabled = false
+		end)
+	end
+end
+
+UserInputService.InputBegan:Connect(function(p1, p2) --[[ Line: 1891 | Upvalues: togglePanel (copy), v5 (ref), switchTab (copy), v7 (ref), v38 (ref), f39 (ref), f41 (ref), f40 (ref), t3 (ref), v37 (ref) ]]
+	if p2 then
+		return
+	end
+
+	if p1.KeyCode == Enum.KeyCode.BackSlash or p1.KeyCode == Enum.KeyCode.F9 then
+		togglePanel()
+	end
+
+	if not v5.Enabled then
+		return
+	end
+
+	if p1.KeyCode == Enum.KeyCode.One then
+		switchTab("Players")
+		v7()
+
+		return
+	end
+
+	if p1.KeyCode == Enum.KeyCode.Two then
+		switchTab("Shops")
+		v38()
+
+		return
+	end
+
+	if p1.KeyCode == Enum.KeyCode.Three then
+		switchTab("Logs")
+		f39()
+
+		return
+	end
+
+	if p1.KeyCode == Enum.KeyCode.Four then
+		switchTab("Server")
+		f41()
+
+		return
+	end
+
+	if p1.KeyCode == Enum.KeyCode.Five then
+		switchTab("Event")
+		f40()
+
+		return
+	end
+
+	if p1.KeyCode == Enum.KeyCode.Six then
+		switchTab("Clans")
+		t3 = {}
+		(nil)("")
+
+		return
+	end
+
+	if p1.KeyCode ~= Enum.KeyCode.Seven then
+		return
+	end
+
+	switchTab("Banned")
+	v37()
+end)
+
+if v6 then
+	v6.Visible = true
+	v6.Size = UDim2.new(0, 54, 0, 54)
+	v6.Position = UDim2.new(1, -70, 0, 120)
+	v6.MouseButton1Click:Connect(function() --[[ Line: 1911 | Upvalues: togglePanel (copy) ]]
+		togglePanel()
+	end)
+end
+
+if AdminRefresh then
+	AdminRefresh.OnClientEvent:Connect(function(p1, p2) --[[ Line: 1915 ]]
+		if p1 ~= "adminConnected" then
+			return
+		end
+
+		print("[AdminPanel] Connected as " .. (if p2 then p2.role or "?" else "?"))
+	end)
+end
+
+if Header then
+	local TitleLabel = Header:FindFirstChild("TitleLabel")
+
+	if TitleLabel then
+		TitleLabel.Text = "Admin Panel \226\128\148 " .. v3
+	end
+end
+
+setupActionHandlers()
+setupGlobalShopControls()
+switchTab("Players")
+v7()
+print(v0)
+print("[AdminPanelClient V1.5] Loaded | Role: " .. v3)
+print("  \\ or F9 = toggle | 1-7 = tabs")
+print("  \226\156\133 Global Players: in-memory (instant, no DS lag)")
+print("  \226\156\133 Banned Tab (7): \209\129\208\191\208\184\209\129\208\190\208\186 \208\178\209\129\208\181\209\133 \208\183\208\176\208\177\208\176\208\189\208\181\208\189\208\189\209\139\209\133")
+print("  \226\156\133 Give Item bug: targetName \209\132\208\184\208\186\209\129\208\184\209\128\208\190\208\178\208\176\208\189 \208\178 \208\183\208\176\208\188\209\139\208\186\208\176\208\189\208\184\208\184")
+print("  \226\156\133 Quick actions \208\178 \208\186\208\176\208\182\208\180\208\190\208\185 \209\129\209\130\209\128\208\190\208\186\208\181 \208\184\208\179\209\128\208\190\208\186\208\176")
+print("  \226\156\133 BannedOnly \209\132\208\184\208\187\209\140\209\130\209\128 \208\178 Players Tab")
+print(v0)
